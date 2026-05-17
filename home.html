@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>zerøbyte | Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      min-height: 100vh;
+      color: #ffffff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: 85px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      margin-bottom: 25px;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .notification-bell {
+      position: relative;
+      cursor: pointer;
+      font-size: 22px;
+      color: #94a3b8;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -10px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 8px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    /* Profile Card */
+    .profile-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .avatar {
+      width: 75px;
+      height: 75px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-info h3 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .profile-info p {
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    /* Stats Row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .stat-card i {
+      font-size: 28px;
+      color: #7c3aed;
+      margin-bottom: 8px;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 5px;
+    }
+
+    /* Sections */
+    .section {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Friend Card with Unread Badge */
+    .friend-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px;
+      margin-bottom: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .friend-card:hover {
+      background: rgba(124, 58, 237, 0.15);
+      transform: translateX(5px);
+    }
+
+    .friend-card.unread-highlight {
+      background: rgba(124, 58, 237, 0.25);
+      border-left: 3px solid #7c3aed;
+    }
+
+    .friend-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .friend-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .friend-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .friend-details h4 {
+      font-size: 16px;
+      margin-bottom: 3px;
+    }
+
+    .friend-details .friend-handle {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .last-message-preview {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .unread-badge {
+      background: #ef4444;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 20px;
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #64748b;
+      margin-left: 8px;
+    }
+
+    .status-dot.online {
+      background: #22c55e;
+      box-shadow: 0 0 5px #22c55e;
+    }
+
+    .request-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+    }
+
+    .request-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-accept, .btn-reject {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn-accept {
+      background: #22c55e;
+      color: white;
+    }
+
+    .btn-reject {
+      background: #ef4444;
+      color: white;
+    }
+
+    .online-badge {
+      font-size: 11px;
+      color: #22c55e;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: #94a3b8;
+    }
+
+    /* Notifications Panel */
+    .notifications-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 100%;
+      max-width: 420px;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 1001;
+      transition: right 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .notifications-panel.open {
+      right: 0;
+    }
+
+    .notifications-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .close-panel {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .notifications-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .notification-item {
+      background: rgba(124, 58, 237, 0.1);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .notification-item.unread {
+      border-left: 3px solid #7c3aed;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      display: none;
+    }
+
+    .overlay.show {
+      display: block;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 20px;
+      border-top: 1px solid rgba(124, 58, 237, 0.2);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 5px 15px;
+      border-radius: 10px;
+    }
+
+    .nav-item i {
+      font-size: 20px;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      color: #7c3aed;
+      background: rgba(124, 58, 237, 0.1);
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 15px;
+        padding-bottom: 80px;
+      }
+      
+      .last-message-preview {
+        max-width: 150px;
+      }
+      
+      .friend-details h4 {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <div class="logo">zerøbyte</div>
+      <div class="top-actions">
+        <div class="notification-bell" onclick="toggleNotifications()">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge" id="notificationBadge" style="display:none">0</span>
+        </div>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeNotifications()"></div>
+    <div class="notifications-panel" id="notificationsPanel">
+      <div class="notifications-header">
+        <h3><i class="fas fa-bell"></i> Notifications</h3>
+        <button class="close-panel" onclick="closeNotifications()">&times;</button>
+      </div>
+      <div class="notifications-list" id="notificationsList">
+        <div class="empty-state">No notifications</div>
+      </div>
+    </div>
+
+    <div class="profile-card" id="profileCard">
+      <div class="avatar" id="avatarContainer">
+        <i class="fas fa-user" id="avatarIcon"></i>
+        <img id="avatarImg" style="display:none">
+      </div>
+      <div class="profile-info">
+        <h3 id="displayName">Loading...</h3>
+        <p id="userHandle">@loading</p>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card" onclick="scrollToSection('friends')">
+        <i class="fas fa-users"></i>
+        <div class="stat-number" id="friendsCount">0</div>
+        <div class="stat-label">Friends</div>
+      </div>
+      <div class="stat-card" onclick="scrollToSection('requests')">
+        <i class="fas fa-user-plus"></i>
+        <div class="stat-number" id="requestsCount">0</div>
+        <div class="stat-label">Requests</div>
+      </div>
+      <div class="stat-card" onclick="scrollToSection('online')">
+        <i class="fas fa-circle"></i>
+        <div class="stat-number" id="onlineCount">0</div>
+        <div class="stat-label">Online</div>
+      </div>
+      <div class="stat-card">
+        <i class="fas fa-envelope"></i>
+        <div class="stat-number" id="unreadCount">0</div>
+        <div class="stat-label">Unread</div>
+      </div>
+    </div>
+
+    <div class="section" id="onlineSection">
+      <div class="section-title">
+        <span><i class="fas fa-circle" style="color:#22c55e"></i> Online Now</span>
+      </div>
+      <div id="onlineUsersList"></div>
+    </div>
+
+    <div class="section" id="requestsSection">
+      <div class="section-title">
+        <span><i class="fas fa-user-plus"></i> Friend Requests</span>
+      </div>
+      <div id="requestsList"></div>
+    </div>
+
+    <div class="section" id="friendsSection">
+      <div class="section-title">
+        <span><i class="fas fa-users"></i> My Friends</span>
+        <span style="font-size:11px; color:#7c3aed">Tap to chat</span>
+      </div>
+      <div id="friendsList"></div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="location.reload()">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </div>
+      <div class="nav-item" onclick="window.location.href='profile.html'">
+        <i class="fas fa-user-edit"></i>
+        <span>Profile</span>
+      </div>
+      <div class="nav-item" onclick="window.location.href='search.html'">
+        <i class="fas fa-search"></i>
+        <span>Find</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUser = null;
+    let unreadMessagesByFriend = {};
+    let lastMessagePreview = {};
+
+    async function checkAuth() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return null;
+      }
+      currentUser = session.user;
+      await _supabase.from('profiles').update({ is_online: true }).eq('id', currentUser.id);
+      return currentUser;
+    }
+
+    async function loadProfile() {
+      const { data } = await _supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+      
+      if (data) {
+        document.getElementById('displayName').textContent = data.display_name || data.username;
+        document.getElementById('userHandle').textContent = `@${data.user_handle || data.username}`;
+        
+        if (data.avatar_url) {
+          document.getElementById('avatarImg').src = data.avatar_url;
+          document.getElementById('avatarImg').style.display = 'block';
+          document.getElementById('avatarIcon').style.display = 'none';
+        }
+      }
+    }
+
+    async function loadOnlineUsers() {
+      const { data } = await _supabase
+        .from('profiles')
+        .select('id, display_name, username, user_handle, avatar_url')
+        .eq('is_online', true)
+        .neq('id', currentUser.id)
+        .limit(8);
+      
+      document.getElementById('onlineCount').textContent = data?.length || 0;
+      const container = document.getElementById('onlineUsersList');
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div class="empty-state">No users online</div>';
+        return;
+      }
+      
+      let html = '';
+      for (const user of data.slice(0, 5)) {
+        html += `
+          <div class="friend-card" onclick="startChat('${user.id}', '${escapeHtml(user.display_name || user.username)}')">
+            <div class="friend-info">
+              <div class="friend-avatar">
+                ${user.avatar_url ? `<img src="${user.avatar_url}">` : '<i class="fas fa-user"></i>'}
+              </div>
+              <div class="friend-details">
+                <h4>${escapeHtml(user.display_name || user.username)}</h4>
+                <span class="friend-handle">@${escapeHtml(user.user_handle || user.username)}</span>
+              </div>
+            </div>
+            <span class="online-badge"><i class="fas fa-circle"></i> Online</span>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    async function loadFriendRequests() {
+      const { data: requests } = await _supabase
+        .from('connections')
+        .select('user_id')
+        .eq('friend_id', currentUser.id)
+        .eq('status', 'pending');
+      
+      document.getElementById('requestsCount').textContent = requests?.length || 0;
+      const container = document.getElementById('requestsList');
+      if (!requests || requests.length === 0) {
+        container.innerHTML = '<div class="empty-state">No pending requests</div>';
+        return;
+      }
+      
+      const userIds = requests.map(r => r.user_id);
+      const { data: users } = await _supabase.from('profiles').select('*').in('id', userIds);
+      
+      let html = '';
+      for (const user of users || []) {
+        html += `
+          <div class="request-item">
+            <div class="request-info">
+              <div class="friend-avatar" style="width:40px;height:40px">
+                ${user.avatar_url ? `<img src="${user.avatar_url}">` : '<i class="fas fa-user"></i>'}
+              </div>
+              <div>
+                <strong>${escapeHtml(user.display_name || user.username)}</strong>
+                <div style="font-size:11px;color:#94a3b8">@${escapeHtml(user.user_handle || user.username)}</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px">
+              <button class="btn-accept" onclick="acceptRequest('${user.id}')">Accept</button>
+              <button class="btn-reject" onclick="rejectRequest('${user.id}')">Reject</button>
+            </div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    // ============================================
+    // FIXED: Load friends with unread message counts and previews
+    // ============================================
+    async function loadFriendsWithUnread() {
+      // Get all friends
+      const { data: connections } = await _supabase
+        .from('connections')
+        .select('*')
+        .or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`)
+        .eq('status', 'accepted');
+      
+      if (!connections || connections.length === 0) {
+        document.getElementById('friendsList').innerHTML = '<div class="empty-state">No friends yet</div>';
+        document.getElementById('friendsCount').textContent = '0';
+        return;
+      }
+      
+      const friendIds = connections.map(c => c.user_id === currentUser.id ? c.friend_id : c.user_id);
+      
+      // Get friend profiles
+      const { data: friends } = await _supabase.from('profiles').select('*').in('id', friendIds);
+      
+      // Get unread messages count per friend
+      const { data: unreadMessages } = await _supabase
+        .from('messages')
+        .select('sender_id, receiver_id, content, created_at')
+        .eq('receiver_id', currentUser.id)
+        .eq('is_read', false);
+      
+      // Calculate unread count per friend
+      unreadMessagesByFriend = {};
+      lastMessagePreview = {};
+      
+      for (const msg of unreadMessages || []) {
+        const senderId = msg.sender_id;
+        unreadMessagesByFriend[senderId] = (unreadMessagesByFriend[senderId] || 0) + 1;
+        // Store last message preview
+        if (!lastMessagePreview[senderId]) {
+          lastMessagePreview[senderId] = {
+            content: msg.content.substring(0, 50) + (msg.content.length > 50 ? '...' : ''),
+            time: msg.created_at
+          };
+        }
+      }
+      
+      // Also get last message for friends with no unread
+      const { data: lastMessages } = await _supabase
+        .from('messages')
+        .select('sender_id, receiver_id, content, created_at')
+        .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+        .order('created_at', { ascending: false });
+      
+      const lastMsgMap = {};
+      for (const msg of lastMessages || []) {
+        const otherPerson = msg.sender_id === currentUser.id ? msg.receiver_id : msg.sender_id;
+        if (!lastMsgMap[otherPerson] && friendIds.includes(otherPerson)) {
+          lastMsgMap[otherPerson] = {
+            content: msg.content.substring(0, 50) + (msg.content.length > 50 ? '...' : ''),
+            time: msg.created_at,
+            isFromMe: msg.sender_id === currentUser.id
+          };
+        }
+      }
+      
+      // Build friends list
+      let totalUnread = 0;
+      let html = '';
+      
+      for (const friend of friends || []) {
+        const unreadCount = unreadMessagesByFriend[friend.id] || 0;
+        totalUnread += unreadCount;
+        
+        const preview = lastMessagePreview[friend.id] || lastMsgMap[friend.id];
+        const previewText = preview ? 
+          `${preview.isFromMe ? 'You: ' : ''}${preview.content}` : 
+          'No messages yet';
+        
+        html += `
+          <div class="friend-card ${unreadCount > 0 ? 'unread-highlight' : ''}" onclick="startChat('${friend.id}', '${escapeHtml(friend.display_name || friend.username)}')">
+            <div class="friend-info">
+              <div class="friend-avatar">
+                ${friend.avatar_url ? `<img src="${friend.avatar_url}">` : '<i class="fas fa-user"></i>'}
+                <div class="status-dot ${friend.is_online ? 'online' : ''}" style="position:absolute; bottom:2px; right:2px"></div>
+              </div>
+              <div class="friend-details">
+                <h4>
+                  ${escapeHtml(friend.display_name || friend.username)}
+                  ${unreadCount > 0 ? `<span class="unread-badge" style="margin-left:8px">${unreadCount}</span>` : ''}
+                </h4>
+                <div class="friend-handle">@${escapeHtml(friend.user_handle || friend.username)}</div>
+                <div class="last-message-preview">
+                  <i class="fas fa-comment-dots" style="font-size:9px; margin-right:4px"></i>
+                  ${escapeHtml(previewText)}
+                </div>
+              </div>
+            </div>
+            ${friend.is_online ? '<span class="online-badge"><i class="fas fa-circle"></i></span>' : ''}
+          </div>
+        `;
+      }
+      
+      document.getElementById('friendsList').innerHTML = html;
+      document.getElementById('friendsCount').textContent = friends?.length || 0;
+      document.getElementById('unreadCount').textContent = totalUnread;
+      
+      // Update browser title
+      if (totalUnread > 0) {
+        document.title = `(${totalUnread}) zerøbyte`;
+      } else {
+        document.title = 'zerøbyte';
+      }
+      
+      return totalUnread;
+    }
+
+    // ============================================
+    // NOTIFICATION FUNCTIONS
+    // ============================================
+    async function loadNotifications() {
+      const { data: userNotifs } = await _supabase
+        .from('user_notifications')
+        .select('notification_id, is_read')
+        .eq('user_id', currentUser.id);
+      
+      const notifIds = userNotifs?.map(n => n.notification_id) || [];
+      let notifications = [];
+      if (notifIds.length > 0) {
+        const { data: notifs } = await _supabase
+          .from('notifications')
+          .select('*')
+          .in('id', notifIds)
+          .order('created_at', { ascending: false });
+        notifications = notifs || [];
+      }
+      
+      const unreadCount = userNotifs?.filter(n => !n.is_read).length || 0;
+      const badge = document.getElementById('notificationBadge');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+      
+      const container = document.getElementById('notificationsList');
+      if (notifications.length === 0) {
+        container.innerHTML = '<div class="empty-state">No notifications</div>';
+        return;
+      }
+      
+      let html = '';
+      for (const notif of notifications) {
+        const userNotif = userNotifs?.find(n => n.notification_id === notif.id);
+        html += `
+          <div class="notification-item ${!userNotif?.is_read ? 'unread' : ''}" onclick="markNotificationRead('${notif.id}')">
+            <div class="notification-title">${escapeHtml(notif.title)}</div>
+            <div class="notification-message">${escapeHtml(notif.message)}</div>
+            <div class="notification-time">${new Date(notif.created_at).toLocaleString()}</div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    window.markNotificationRead = async (id) => {
+      await _supabase
+        .from('user_notifications')
+        .update({ is_read: true })
+        .eq('user_id', currentUser.id)
+        .eq('notification_id', id);
+      loadNotifications();
+    };
+
+    window.toggleNotifications = () => {
+      document.getElementById('notificationsPanel').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('show');
+      loadNotifications();
+    };
+
+    window.closeNotifications = () => {
+      document.getElementById('notificationsPanel').classList.remove('open');
+      document.getElementById('overlay').classList.remove('show');
+    };
+
+    // ============================================
+    // ACTION FUNCTIONS
+    // ============================================
+    window.acceptRequest = async (userId) => {
+      await _supabase
+        .from('connections')
+        .update({ status: 'accepted' })
+        .eq('user_id', userId)
+        .eq('friend_id', currentUser.id);
+      loadFriendRequests();
+      loadFriendsWithUnread();
+    };
+
+    window.rejectRequest = async (userId) => {
+      await _supabase
+        .from('connections')
+        .delete()
+        .eq('user_id', userId)
+        .eq('friend_id', currentUser.id);
+      loadFriendRequests();
+    };
+
+    window.startChat = (id, name) => {
+      localStorage.setItem('chatFriendId', id);
+      localStorage.setItem('chatFriendName', name);
+      window.location.href = 'chat.html';
+    };
+
+    window.scrollToSection = (section) => {
+      document.getElementById(`${section}Section`).scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.logout = async () => {
+      await _supabase.from('profiles').update({ is_online: false }).eq('id', currentUser.id);
+      await _supabase.auth.signOut();
+      window.location.href = 'index.html';
+    };
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ============================================
+    // REALTIME SETUP - Auto refresh when messages arrive
+    // ============================================
+    function setupRealtime() {
+      // Listen for new messages
+      _supabase
+        .channel('home-updates')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${currentUser.id}`
+        }, () => {
+          // Refresh unread counts immediately
+          loadFriendsWithUnread();
+          
+          // Play notification sound
+          const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+          audio.volume = 0.3;
+          audio.play().catch(e => console.log('Audio play failed'));
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `receiver_id=eq.${currentUser.id}`
+        }, () => {
+          // Refresh when messages are marked as read
+          loadFriendsWithUnread();
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        }, () => {
+          loadOnlineUsers();
+          loadFriendsWithUnread();
+        })
+        .subscribe();
+      
+      // Refresh every 10 seconds as fallback
+      setInterval(() => {
+        loadFriendsWithUnread();
+        loadOnlineUsers();
+      }, 10000);
+    }
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    async function init() {
+      await checkAuth();
+      if (currentUser) {
+        await loadProfile();
+        await loadOnlineUsers();
+        await loadFriendRequests();
+        await loadFriendsWithUnread();
+        await loadNotifications();
+        setupRealtime();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

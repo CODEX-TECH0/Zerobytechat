@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>zerøbyte | Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #ffffff;
+    }
+
+    .chat-header {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+      flex-shrink: 0;
+    }
+
+    .back-btn {
+      background: rgba(124, 58, 237, 0.2);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      color: #7c3aed;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .friend-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .friend-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .friend-info {
+      flex: 1;
+    }
+
+    .friend-name {
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .friend-status {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .friend-status.online {
+      color: #22c55e;
+    }
+
+    .chat-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .chat-actions button {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    /* Chat Messages */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 4px;
+      animation: fadeIn 0.15s ease;
+      position: relative;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.sent {
+      justify-content: flex-end;
+    }
+
+    .message.received {
+      justify-content: flex-start;
+    }
+
+    .message-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      position: relative;
+      transition: all 0.1s ease;
+    }
+
+    .message.sent .message-bubble {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.received .message-bubble {
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-text {
+      font-size: 14px;
+      word-wrap: break-word;
+    }
+
+    .edited-badge {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-left: 5px;
+    }
+
+    .message-time {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 4px;
+      text-align: right;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .message-actions {
+      position: absolute;
+      background: #1e1b4b;
+      border-radius: 12px;
+      padding: 5px;
+      display: none;
+      gap: 8px;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .message-actions button {
+      background: none;
+      border: none;
+      color: #cbd5e1;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .message-actions button:hover {
+      background: rgba(124, 58, 237, 0.3);
+    }
+
+    .message-actions button.delete {
+      color: #ef4444;
+    }
+
+    .pinned-message {
+      background: rgba(124, 58, 237, 0.2);
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 10px;
+      font-size: 12px;
+      border-left: 3px solid #7c3aed;
+    }
+
+    .replying-to {
+      background: rgba(124, 58, 237, 0.2);
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-input-area {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 15px;
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid rgba(124, 58, 237, 0.2);
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      border-radius: 25px;
+      color: white;
+      font-size: 15px;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #7c3aed;
+    }
+
+    .btn-send {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    /* Modals */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #1e1b4b;
+      padding: 25px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .modal-content input, .modal-content textarea, .modal-content select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #7c3aed;
+      border-radius: 10px;
+      color: white;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn-confirm {
+      flex: 1;
+      background: #7c3aed;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      background: #ef4444;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* Forward Modal */
+    .friend-list-item {
+      padding: 12px;
+      margin: 5px 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .friend-list-item:hover {
+      background: rgba(124, 58, 237, 0.3);
+    }
+
+    @media (max-width: 640px) {
+      .message-bubble {
+        max-width: 85%;
+      }
+      
+      .message-actions button {
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-header">
+    <button class="back-btn" onclick="closeChat()"><i class="fas fa-arrow-left"></i></button>
+    <div class="friend-avatar" id="friendAvatar"><i class="fas fa-user"></i></div>
+    <div class="friend-info">
+      <div class="friend-name" id="friendName">Loading...</div>
+      <div class="friend-status" id="friendStatus">Offline</div>
+    </div>
+    <div class="chat-actions">
+      <button onclick="openSearchMessages()"><i class="fas fa-search"></i></button>
+      <button onclick="openPinnedMessages()"><i class="fas fa-thumbtack"></i></button>
+    </div>
+  </div>
+
+  <div class="chat-messages" id="chatMessages"></div>
+
+  <!-- Reply indicator -->
+  <div id="replyIndicator" class="replying-to" style="display:none">
+    <span><i class="fas fa-reply"></i> Replying to: <span id="replyingToText"></span></span>
+    <button onclick="cancelReply()" style="background:none; border:none; color:#ef4444; cursor:pointer">✕</button>
+  </div>
+
+  <div class="chat-input-area">
+    <input type="text" class="chat-input" id="messageInput" placeholder="Type a message...">
+    <button class="btn-send" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send</button>
+  </div>
+
+  <!-- Edit Message Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Message</h3>
+      <input type="text" id="editInput" placeholder="Edit your message...">
+      <div class="modal-buttons">
+        <button class="btn-confirm" onclick="confirmEdit()">Save</button>
+        <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forward Modal -->
+  <div id="forwardModal" class="modal">
+    <div class="modal-content">
+      <h3>Forward to...</h3>
+      <div id="friendsListForForward" style="max-height:300px; overflow-y:auto"></div>
+      <button class="btn-cancel" onclick="closeForwardModal()" style="margin-top:10px">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Search Messages Modal -->
+  <div id="searchModal" class="modal">
+    <div class="modal-content">
+      <h3>Search Messages</h3>
+      <input type="text" id="searchQuery" placeholder="Search...">
+      <button class="btn-confirm" onclick="searchMessages()">Search</button>
+      <div id="searchResults" style="margin-top:15px; max-height:300px; overflow-y:auto"></div>
+      <button class="btn-cancel" onclick="closeSearchModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- Pinned Messages Modal -->
+  <div id="pinnedModal" class="modal">
+    <div class="modal-content">
+      <h3><i class="fas fa-thumbtack"></i> Pinned Messages</h3>
+      <div id="pinnedList" style="max-height:300px; overflow-y:auto"></div>
+      <button class="btn-cancel" onclick="closePinnedModal()">Close</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUser = null;
+    let friendId = null;
+    let messageCache = [];
+    let replyingTo = null;
+    let editingMessageId = null;
+    let forwardingMessage = null;
+
+    async function checkAuth() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return null; }
+      currentUser = session.user;
+      return currentUser;
+    }
+
+    function closeChat() { window.location.href = 'home.html'; }
+
+    async function loadFriendInfo() {
+      friendId = localStorage.getItem('chatFriendId');
+      const friendName = localStorage.getItem('chatFriendName');
+      if (!friendId) { closeChat(); return; }
+      document.getElementById('friendName').textContent = friendName;
+      const { data: friend } = await _supabase.from('profiles').select('is_online, avatar_url').eq('id', friendId).single();
+      if (friend) {
+        const statusEl = document.getElementById('friendStatus');
+        if (friend.is_online) { statusEl.textContent = 'Online'; statusEl.classList.add('online'); }
+        else { statusEl.textContent = 'Offline'; statusEl.classList.remove('online'); }
+        if (friend.avatar_url) { document.getElementById('friendAvatar').innerHTML = `<img src="${friend.avatar_url}">`; }
+      }
+    }
+
+    async function loadMessages() {
+      const { data: messages } = await _supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: true });
+      
+      if (messages) {
+        messageCache = messages;
+        displayMessages();
+        
+        const unreadMessages = messages.filter(m => m.receiver_id === currentUser.id && !m.is_read);
+        for (const msg of unreadMessages) {
+          await _supabase.from('messages').update({ is_read: true }).eq('id', msg.id);
+        }
+      }
+    }
+
+    function displayMessages() {
+      const container = document.getElementById('chatMessages');
+      const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      container.innerHTML = '';
+      
+      for (const msg of messageCache) {
+        const isSent = msg.sender_id === currentUser.id;
+        const div = document.createElement('div');
+        div.className = `message ${isSent ? 'sent' : 'received'}`;
+        div.setAttribute('data-message-id', msg.id);
+        
+        const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const isPinned = msg.is_pinned;
+        
+        div.innerHTML = `
+          <div class="message-bubble" oncontextmenu="showMessageActions(event, '${msg.id}', '${escapeHtml(msg.content)}', ${isSent})">
+            ${isPinned ? '<i class="fas fa-thumbtack" style="font-size:10px; margin-right:5px; color:#7c3aed"></i>' : ''}
+            ${msg.reply_to ? `<div style="font-size:10px; color:#94a3b8; margin-bottom:5px"><i class="fas fa-reply"></i> Reply to: "${escapeHtml(msg.reply_to.substring(0, 40))}..."</div>` : ''}
+            <div class="message-text">${escapeHtml(msg.content)}</div>
+            <div class="message-time">
+              ${time}
+              ${msg.edited ? '<span class="edited-badge">edited</span>' : ''}
+              ${isSent ? `<span class="message-status">${msg.is_read ? '✓✓' : '✓'}</span>` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      }
+      if (shouldScroll) { container.scrollTop = container.scrollHeight; }
+    }
+
+    // ============================================
+    // DELETE MESSAGE (Combo 1)
+    // ============================================
+    async function deleteMessage(messageId, forEveryone = true) {
+      if (forEveryone) {
+        await _supabase.from('messages').delete().eq('id', messageId);
+      } else {
+        // Delete for me - just mark as deleted from user's view
+        await _supabase.from('messages').update({ deleted_for: currentUser.id }).eq('id', messageId);
+      }
+      await loadMessages();
+    }
+
+    // ============================================
+    // EDIT MESSAGE (Combo 1)
+    // ============================================
+    window.openEditModal = (messageId, currentContent) => {
+      editingMessageId = messageId;
+      document.getElementById('editInput').value = currentContent;
+      document.getElementById('editModal').style.display = 'flex';
+    };
+
+    window.confirmEdit = async () => {
+      const newContent = document.getElementById('editInput').value.trim();
+      if (!newContent) return;
+      
+      await _supabase
+        .from('messages')
+        .update({ content: newContent, edited: true })
+        .eq('id', editingMessageId);
+      
+      closeEditModal();
+      await loadMessages();
+    };
+
+    window.closeEditModal = () => {
+      document.getElementById('editModal').style.display = 'none';
+      editingMessageId = null;
+    };
+
+    // ============================================
+    // PIN MESSAGE (Combo 1)
+    // ============================================
+    async function pinMessage(messageId) {
+      const message = messageCache.find(m => m.id === messageId);
+      await _supabase.from('messages').update({ is_pinned: !message?.is_pinned }).eq('id', messageId);
+      await loadMessages();
+    }
+
+    // ============================================
+    // REPLY TO MESSAGE (Combo 1)
+    // ============================================
+    window.startReply = (messageId, content) => {
+      replyingTo = { id: messageId, content: content };
+      document.getElementById('replyingToText').textContent = content.substring(0, 50) + (content.length > 50 ? '...' : '');
+      document.getElementById('replyIndicator').style.display = 'flex';
+    };
+
+    window.cancelReply = () => {
+      replyingTo = null;
+      document.getElementById('replyIndicator').style.display = 'none';
+    };
+
+    // ============================================
+    // FORWARD MESSAGE (Combo 1)
+    // ============================================
+    window.openForwardModal = async (messageId, content) => {
+      forwardingMessage = { id: messageId, content: content };
+      
+      // Load friends list
+      const { data: connections } = await _supabase
+        .from('connections')
+        .select('*')
+        .or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`)
+        .eq('status', 'accepted');
+      
+      const friendIds = connections.map(c => c.user_id === currentUser.id ? c.friend_id : c.user_id);
+      const { data: friends } = await _supabase.from('profiles').select('id, display_name, username').in('id', friendIds);
+      
+      const container = document.getElementById('friendsListForForward');
+      container.innerHTML = '';
+      for (const friend of friends || []) {
+        container.innerHTML += `
+          <div class="friend-list-item" onclick="forwardMessageTo('${friend.id}')">
+            <i class="fas fa-user-circle"></i>
+            <span>${escapeHtml(friend.display_name || friend.username)}</span>
+          </div>
+        `;
+      }
+      
+      document.getElementById('forwardModal').style.display = 'flex';
+    };
+
+    async function forwardMessageTo(targetFriendId) {
+      await _supabase.from('messages').insert([{
+        sender_id: currentUser.id,
+        receiver_id: targetFriendId,
+        content: `📨 Forwarded: ${forwardingMessage.content}`,
+        is_read: false
+      }]);
+      
+      closeForwardModal();
+      alert('Message forwarded!');
+    }
+
+    window.closeForwardModal = () => {
+      document.getElementById('forwardModal').style.display = 'none';
+      forwardingMessage = null;
+    };
+
+    // ============================================
+    // MESSAGE ACTIONS MENU
+    // ============================================
+    function showMessageActions(event, messageId, content, isSent) {
+      event.preventDefault();
+      
+      // Remove existing menu
+      const existingMenu = document.querySelector('.message-actions');
+      if (existingMenu) existingMenu.remove();
+      
+      const menu = document.createElement('div');
+      menu.className = 'message-actions';
+      menu.style.position = 'absolute';
+      menu.style.left = `${event.pageX - 100}px`;
+      menu.style.top = `${event.pageY - 40}px`;
+      
+      let buttons = '';
+      
+      if (isSent) {
+        buttons += `<button onclick="openEditModal('${messageId}', '${escapeHtml(content)}')"><i class="fas fa-edit"></i> Edit</button>`;
+        buttons += `<button class="delete" onclick="deleteMessage('${messageId}', true)"><i class="fas fa-trash"></i> Delete for Everyone</button>`;
+        buttons += `<button class="delete" onclick="deleteMessage('${messageId}', false)"><i class="fas fa-user-slash"></i> Delete for Me</button>`;
+      }
+      
+      buttons += `<button onclick="pinMessage('${messageId}')"><i class="fas fa-thumbtack"></i> Pin</button>`;
+      buttons += `<button onclick="startReply('${messageId}', '${escapeHtml(content)}')"><i class="fas fa-reply"></i> Reply</button>`;
+      buttons += `<button onclick="openForwardModal('${messageId}', '${escapeHtml(content)}')"><i class="fas fa-share"></i> Forward</button>`;
+      
+      menu.innerHTML = buttons;
+      document.body.appendChild(menu);
+      menu.style.display = 'flex';
+      
+      setTimeout(() => {
+        document.addEventListener('click', function removeMenu() {
+          menu.remove();
+          document.removeEventListener('click', removeMenu);
+        });
+      }, 100);
+    }
+
+    // ============================================
+    // SEARCH MESSAGES (Combo 8 enhancement)
+    // ============================================
+    window.openSearchMessages = () => {
+      document.getElementById('searchModal').style.display = 'flex';
+      document.getElementById('searchResults').innerHTML = '';
+    };
+
+    window.searchMessages = () => {
+      const query = document.getElementById('searchQuery').value.toLowerCase();
+      const results = messageCache.filter(m => m.content.toLowerCase().includes(query));
+      
+      const container = document.getElementById('searchResults');
+      if (results.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8">No messages found</p>';
+        return;
+      }
+      
+      container.innerHTML = results.map(m => `
+        <div class="friend-list-item" onclick="scrollToMessage('${m.id}')">
+          <div>
+            <small style="color:#7c3aed">${new Date(m.created_at).toLocaleString()}</small>
+            <div>${escapeHtml(m.content.substring(0, 80))}${m.content.length > 80 ? '...' : ''}</div>
+          </div>
+        </div>
+      `).join('');
+    };
+
+    function scrollToMessage(messageId) {
+      const element = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.style.backgroundColor = 'rgba(124, 58, 237, 0.3)';
+        setTimeout(() => {
+          element.style.backgroundColor = '';
+        }, 2000);
+      }
+      closeSearchModal();
+    }
+
+    window.closeSearchModal = () => {
+      document.getElementById('searchModal').style.display = 'none';
+    };
+
+    // ============================================
+    // PINNED MESSAGES
+    // ============================================
+    window.openPinnedMessages = () => {
+      const pinnedMessages = messageCache.filter(m => m.is_pinned);
+      const container = document.getElementById('pinnedList');
+      
+      if (pinnedMessages.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8">No pinned messages</p>';
+      } else {
+        container.innerHTML = pinnedMessages.map(m => `
+          <div class="friend-list-item" onclick="scrollToMessage('${m.id}')">
+            <div>
+              <small style="color:#7c3aed">${new Date(m.created_at).toLocaleString()}</small>
+              <div>${escapeHtml(m.content.substring(0, 80))}${m.content.length > 80 ? '...' : ''}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      document.getElementById('pinnedModal').style.display = 'flex';
+    };
+
+    window.closePinnedModal = () => {
+      document.getElementById('pinnedModal').style.display = 'none';
+    };
+
+    // ============================================
+    // SEND MESSAGE (with reply support)
+    // ============================================
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+      
+      const messageData = {
+        sender_id: currentUser.id,
+        receiver_id: friendId,
+        content: content,
+        is_read: false
+      };
+      
+      if (replyingTo) {
+        messageData.reply_to = replyingTo.content;
+        messageData.reply_to_id = replyingTo.id;
+      }
+      
+      await _supabase.from('messages').insert([messageData]);
+      
+      input.value = '';
+      cancelReply();
+      await loadMessages();
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function setupRealtime() {
+      _supabase
+        .channel('chat-messages')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+          loadMessages();
+        })
+        .subscribe();
+    }
+
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    async function init() {
+      await checkAuth();
+      if (currentUser) {
+        await loadFriendInfo();
+        await loadMessages();
+        setupRealtime();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
