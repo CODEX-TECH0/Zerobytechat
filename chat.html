@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>zerøbyte | Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #ffffff;
+    }
+    .chat-header {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+      flex-shrink: 0;
+    }
+    .back-btn {
+      background: rgba(124, 58, 237, 0.2);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      color: #7c3aed;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .friend-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .friend-info { flex: 1; }
+    .friend-name { font-weight: bold; font-size: 18px; }
+    .friend-status { font-size: 12px; color: #94a3b8; }
+    .friend-status.online { color: #22c55e; }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .message { display: flex; margin-bottom: 4px; animation: fadeInUp 0.15s ease; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message.sent { justify-content: flex-end; }
+    .message.received { justify-content: flex-start; }
+    .message-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      position: relative;
+    }
+    .message.sent .message-bubble {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border-bottom-right-radius: 4px;
+    }
+    .message.received .message-bubble {
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-left-radius: 4px;
+    }
+    .message-text { font-size: 15px; word-wrap: break-word; }
+    .message-time { font-size: 9px; color: rgba(255,255,255,0.5); margin-top: 4px; text-align: right; }
+    .message-status { font-size: 9px; margin-left: 4px; }
+    .sending-indicator { opacity: 0.6; }
+    .failed-message { background: rgba(239,68,68,0.3) !important; }
+    .retry-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 10px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .chat-input-area {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      display: flex;
+      gap: 12px;
+      border-top: 1px solid rgba(124, 58, 237, 0.2);
+      flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      border-radius: 30px;
+      color: white;
+      font-size: 16px;
+    }
+    .chat-input:focus { outline: none; border-color: #7c3aed; }
+    .btn-send {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border: none;
+      border-radius: 30px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .typing-indicator {
+      background: rgba(255,255,255,0.1);
+      padding: 6px 14px;
+      border-radius: 18px;
+      font-size: 11px;
+      color: #94a3b8;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .report-btn {
+      background: none;
+      border: none;
+      color: rgba(239,68,68,0.5);
+      cursor: pointer;
+      font-size: 10px;
+      margin-left: 6px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #1e1b4b;
+      padding: 25px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 90%;
+    }
+    .modal-content textarea {
+      width: 100%;
+      margin: 15px 0;
+      padding: 12px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid #7c3aed;
+      border-radius: 10px;
+      color: white;
+    }
+    .btn-submit, .btn-cancel {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn-submit { background: #7c3aed; color: white; }
+    .btn-cancel { background: #ef4444; color: white; margin-left: 10px; }
+    @media (max-width: 640px) {
+      .message-bubble { max-width: 85%; }
+      .btn-send { padding: 12px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-header">
+    <button class="back-btn" onclick="closeChat()"><i class="fas fa-arrow-left"></i></button>
+    <div class="friend-avatar" id="friendAvatar"><i class="fas fa-user"></i></div>
+    <div class="friend-info">
+      <div class="friend-name" id="friendName">Loading...</div>
+      <div class="friend-status" id="friendStatus">Offline</div>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area">
+    <input type="text" class="chat-input" id="messageInput" placeholder="Type a message...">
+    <button class="btn-send" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send</button>
+  </div>
+  <div id="reportModal" class="modal">
+    <div class="modal-content">
+      <h3>Report Message</h3>
+      <textarea id="reportReason" rows="3" placeholder="Reason for reporting..."></textarea>
+      <button class="btn-submit" onclick="submitReport()">Submit</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUser = null;
+    let friendId = null;
+    let messageCache = [];
+    let lastMessageTime = null;
+    let isLoading = false;
+    let hasMoreMessages = true;
+    let currentReportMessageId = null;
+    let messageQueue = [];
+    let isOnline = true;
+
+    async function checkAuth() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return null; }
+      currentUser = session.user;
+      return currentUser;
+    }
+
+    function closeChat() { window.location.href = 'home.html'; }
+
+    async function loadFriendInfo() {
+      friendId = localStorage.getItem('chatFriendId');
+      const friendName = localStorage.getItem('chatFriendName');
+      if (!friendId) { closeChat(); return; }
+      document.getElementById('friendName').textContent = friendName;
+      const { data: friend } = await _supabase.from('profiles').select('is_online, avatar_url').eq('id', friendId).single();
+      if (friend) {
+        const statusEl = document.getElementById('friendStatus');
+        if (friend.is_online) { statusEl.textContent = 'Online'; statusEl.classList.add('online'); }
+        else { statusEl.textContent = 'Offline'; statusEl.classList.remove('online'); }
+        if (friend.avatar_url) { document.getElementById('friendAvatar').innerHTML = `<img src="${friend.avatar_url}" style="width:100%;height:100%;border-radius:50%">`; }
+      }
+    }
+
+    // OPTIMIZED: Load only 30 messages at a time (pagination)
+    async function loadMessages(loadMore = false) {
+      if (isLoading) return;
+      isLoading = true;
+      
+      let query = _supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      
+      if (loadMore && messageCache.length > 0) {
+        const oldestTime = messageCache[messageCache.length - 1]?.created_at;
+        if (oldestTime) query = query.lt('created_at', oldestTime);
+      }
+      
+      const { data: newMessages } = await query;
+      if (newMessages && newMessages.length > 0) {
+        if (loadMore) { messageCache = [...messageCache, ...newMessages.reverse()]; }
+        else { messageCache = newMessages.reverse(); }
+        if (newMessages.length < 30) hasMoreMessages = false;
+        displayMessages();
+      }
+      isLoading = false;
+    }
+
+    // OPTIMIZED: Only load new messages since last time
+    async function loadNewMessages() {
+      if (!lastMessageTime) return;
+      const { data: newMessages } = await _supabase
+        .from('messages')
+        .select('*')
+        .gt('created_at', lastMessageTime)
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id})`);
+      
+      if (newMessages && newMessages.length > 0) {
+        messageCache = [...messageCache, ...newMessages];
+        lastMessageTime = newMessages[newMessages.length - 1]?.created_at;
+        displayMessages();
+        
+        // Mark as read instantly
+        const unreadMessages = newMessages.filter(m => m.receiver_id === currentUser.id && !m.is_read);
+        for (const msg of unreadMessages) {
+          _supabase.from('messages').update({ is_read: true }).eq('id', msg.id);
+        }
+      }
+    }
+
+    function displayMessages() {
+      const container = document.getElementById('chatMessages');
+      const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      container.innerHTML = '';
+      for (const msg of messageCache) {
+        const isSent = msg.sender_id === currentUser.id;
+        const div = document.createElement('div');
+        div.className = `message ${isSent ? 'sent' : 'received'}`;
+        const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        div.innerHTML = `
+          <div class="message-bubble ${msg.failed ? 'failed-message' : ''} ${msg.sending ? 'sending-indicator' : ''}">
+            <div class="message-text">${escapeHtml(msg.content)}</div>
+            <div class="message-time">
+              ${time}
+              ${isSent ? `<span class="message-status">${msg.is_read ? '✓✓' : msg.sending ? '⋯' : '✓'}</span>` : ''}
+              ${!isSent ? `<button class="report-btn" onclick="openReportModal('${msg.id}', '${escapeHtml(msg.content)}')"><i class="fas fa-flag"></i></button>` : ''}
+              ${msg.failed ? `<button class="retry-btn" onclick="retryMessage('${msg.id}')"><i class="fas fa-redo"></i></button>` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      }
+      if (shouldScroll) { container.scrollTop = container.scrollHeight; }
+      if (messageCache.length > 0) { lastMessageTime = messageCache[messageCache.length - 1]?.created_at; }
+    }
+
+    // OPTIMIZED: Optimistic sending - shows message instantly
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+      
+      const tempId = 'temp_' + Date.now() + '_' + Math.random();
+      const tempMessage = {
+        id: tempId,
+        sender_id: currentUser.id,
+        receiver_id: friendId,
+        content: content,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        sending: true,
+        failed: false
+      };
+      
+      messageCache.push(tempMessage);
+      displayMessages();
+      input.value = '';
+      
+      const { data: realMessage, error } = await _supabase
+        .from('messages')
+        .insert([{ sender_id: currentUser.id, receiver_id: friendId, content: content, is_read: false }])
+        .select()
+        .single();
+      
+      if (error) {
+        const index = messageCache.findIndex(m => m.id === tempId);
+        if (index !== -1) { messageCache[index].failed = true; messageCache[index].sending = false; }
+        displayMessages();
+      } else {
+        const index = messageCache.findIndex(m => m.id === tempId);
+        if (index !== -1) { messageCache[index] = realMessage; }
+        displayMessages();
+      }
+    }
+
+    function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+    function setupRealtime() {
+      _supabase
+        .channel('messages-fast')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${currentUser.id},sender_id=eq.${friendId}` }, () => { loadNewMessages(); })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => { loadNewMessages(); })
+        .subscribe();
+      
+      // Poll every 2 seconds as fallback (faster than realtime sometimes)
+      setInterval(() => { loadNewMessages(); }, 2000);
+    }
+
+    window.openReportModal = (messageId, content) => {
+      currentReportMessageId = messageId;
+      document.getElementById('reportReason').value = '';
+      document.getElementById('reportModal').style.display = 'flex';
+    };
+    window.closeModal = () => { document.getElementById('reportModal').style.display = 'none'; };
+    window.submitReport = async () => {
+      const reason = document.getElementById('reportReason').value;
+      if (!reason) { alert('Please provide a reason'); return; }
+      await _supabase.from('reports').insert([{ message_id: currentReportMessageId, reported_by: currentUser.id, reason: reason, status: 'pending' }]);
+      alert('Report submitted'); closeModal();
+    };
+
+    document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+    async function init() {
+      await checkAuth();
+      if (currentUser) {
+        await loadFriendInfo();
+        await loadMessages(false);
+        setupRealtime();
+      }
+    }
+    init();
+  </script>
+</body>
+</html>
