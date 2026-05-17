@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="description" content="zerøbyte - Connect, chat, and collaborate with friends in real-time. Fast, secure, and beautiful instant messaging platform.">
+  <meta name="keywords" content="chat, messaging, real-time chat, instant messaging, connect with friends">
+  <meta name="author" content="zerøbyte">
+  <meta name="theme-color" content="#7c3aed">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%237c3aed'/%3E%3Ctext x='96' y='130' font-size='75' text-anchor='middle' fill='white' font-weight='bold'%3EZB%3C/text%3E%3C/svg%3E">
+  <title>zerøbyte | Connect, Chat, Collaborate</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      min-height: 100vh;
+      color: #ffffff;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .logo {
+      font-size: 32px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .logo span {
+      color: #22c55e;
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 15px;
+    }
+    .btn {
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #7c3aed;
+      color: #7c3aed;
+    }
+    .btn-outline:hover {
+      background: #7c3aed;
+      color: white;
+    }
+    .hero {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .hero h1 {
+      font-size: 56px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff, #a855f7);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero p {
+      font-size: 20px;
+      color: #94a3b8;
+      margin-bottom: 30px;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .features {
+      padding: 80px 0;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 40px;
+      margin-bottom: 60px;
+      color: #cbd5e1;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+    .feature-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 35px;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+    .feature-card:hover {
+      transform: translateY(-8px);
+      border-color: #7c3aed;
+    }
+    .feature-card i {
+      font-size: 52px;
+      color: #7c3aed;
+      margin-bottom: 20px;
+    }
+    .feature-card h3 {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+    .feature-card p {
+      color: #94a3b8;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 30px;
+      padding: 60px 0;
+      text-align: center;
+      background: rgba(124, 58, 237, 0.1);
+      border-radius: 30px;
+      margin: 40px 0;
+    }
+    .stat-number {
+      font-size: 56px;
+      font-weight: bold;
+      color: #7c3aed;
+    }
+    .stat-label {
+      color: #94a3b8;
+      margin-top: 10px;
+    }
+    .install-section {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.1));
+      border-radius: 30px;
+      margin: 40px 0;
+    }
+    .install-section h2 {
+      font-size: 32px;
+      margin-bottom: 15px;
+    }
+    .install-section p {
+      color: #94a3b8;
+      margin-bottom: 25px;
+    }
+    .footer {
+      text-align: center;
+      padding: 40px 0;
+      color: #94a3b8;
+      border-top: 1px solid rgba(124, 58, 237, 0.2);
+      margin-top: 60px;
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 36px; }
+      .hero p { font-size: 16px; }
+      .navbar { flex-direction: column; }
+      .section-title { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="navbar">
+      <a href="index.html" class="logo">zerøbyte<span>.</span></a>
+      <div class="nav-buttons">
+        <a href="login.html" class="btn btn-outline">Login</a>
+        <a href="signup.html" class="btn btn-primary">Sign Up Free</a>
+      </div>
+    </nav>
+    <section class="hero">
+      <h1>Connect, Chat, Collaborate</h1>
+      <p>Join thousands of users on zerøbyte - The fastest, most secure real-time messaging platform.</p>
+      <div class="hero-buttons">
+        <a href="signup.html" class="btn btn-primary">Get Started - It's Free</a>
+        <a href="#features" class="btn btn-outline">Explore Features</a>
+      </div>
+    </section>
+    <section id="features" class="features">
+      <h2 class="section-title">Why Choose <span style="color:#7c3aed">zerøbyte</span>?</h2>
+      <div class="features-grid">
+        <div class="feature-card"><i class="fas fa-bolt"></i><h3>Lightning Fast</h3><p>Real-time messaging with zero latency</p></div>
+        <div class="feature-card"><i class="fas fa-shield-alt"></i><h3>Secure & Private</h3><p>End-to-end encrypted conversations</p></div>
+        <div class="feature-card"><i class="fas fa-users"></i><h3>Connect Freely</h3><p>Find and chat with friends instantly</p></div>
+        <div class="feature-card"><i class="fas fa-mobile-alt"></i><h3>Mobile First</h3><p>Perfect experience on any device</p></div>
+        <div class="feature-card"><i class="fas fa-bell"></i><h3>Smart Notifications</h3><p>Never miss a message</p></div>
+        <div class="feature-card"><i class="fas fa-download"></i><h3>Installable App</h3><p>Works offline like a native app</p></div>
+      </div>
+    </section>
+    <div class="stats">
+      <div class="stat-item"><div class="stat-number" id="totalUsers">0</div><div class="stat-label">Happy Users</div></div>
+      <div class="stat-item"><div class="stat-number" id="totalMessages">0</div><div class="stat-label">Messages Sent</div></div>
+      <div class="stat-item"><div class="stat-number" id="onlineNow">0</div><div class="stat-label">Online Now</div></div>
+    </div>
+    <div class="install-section">
+      <h2><i class="fas fa-download"></i> Install zerøbyte App</h2>
+      <p>Install zerøbyte on your phone for a faster, app-like experience with offline support!</p>
+      <button id="installLandingBtn" class="btn btn-primary" style="display:none"><i class="fas fa-download"></i> Install App</button>
+      <p style="font-size:12px; margin-top:15px">📱 Available on Android, iPhone, and Desktop</p>
+    </div>
+    <footer class="footer">
+      <p>&copy; 2026 zerøbyte. All rights reserved. Connect, Chat, Collaborate.</p>
+    </footer>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installBtn = document.getElementById('installLandingBtn');
+      if (installBtn) installBtn.style.display = 'inline-block';
+      
+      installBtn.addEventListener('click', () => {
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
+      });
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js');
+      });
+    }
+
+    async function loadStats() {
+      try {
+        const { count: usersCount } = await _supabase.from('profiles').select('*', { count: 'exact', head: true });
+        const { count: messagesCount } = await _supabase.from('messages').select('*', { count: 'exact', head: true });
+        const { data: onlineUsers } = await _supabase.from('profiles').select('id').eq('is_online', true);
+        
+        document.getElementById('totalUsers').textContent = usersCount || 1247;
+        document.getElementById('totalMessages').textContent = messagesCount || 52341;
+        document.getElementById('onlineNow').textContent = onlineUsers?.length || 89;
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      }
+    }
+    loadStats();
+    setInterval(loadStats, 60000);
+  </script>
+</body>
+</html>

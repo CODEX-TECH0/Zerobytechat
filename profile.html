@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#7c3aed">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%237c3aed'/%3E%3Ctext x='96' y='130' font-size='75' text-anchor='middle' fill='white' font-weight='bold'%3EZB%3C/text%3E%3C/svg%3E">
+  <title>zerøbyte | Edit Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      min-height: 100vh;
+      color: #ffffff;
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 20px; padding-bottom: 85px; }
+    .header { display: flex; align-items: center; gap: 15px; padding: 15px 0; margin-bottom: 25px; border-bottom: 1px solid rgba(124,58,237,0.2); }
+    .back-btn { background: rgba(124,58,237,0.2); border: none; width: 42px; height: 42px; border-radius: 50%; color: #7c3aed; cursor: pointer; }
+    .logo { font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #7c3aed, #a855f7); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .profile-section { background: rgba(15,23,42,0.7); backdrop-filter: blur(10px); border-radius: 24px; padding: 30px; margin-bottom: 25px; }
+    .avatar-section { text-align: center; margin-bottom: 30px; }
+    .avatar-preview { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #a855f7); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; cursor: pointer; overflow: hidden; position: relative; }
+    .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-preview i { font-size: 48px; }
+    .avatar-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); padding: 5px; font-size: 11px; text-align: center; }
+    .avatar-input { display: none; }
+    .change-avatar-btn { background: rgba(124,58,237,0.2); border: 1px solid #7c3aed; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-size: 14px; }
+    .form-group { margin-bottom: 22px; }
+    label { display: block; margin-bottom: 8px; color: #94a3b8; }
+    label i { margin-right: 8px; color: #7c3aed; }
+    input, textarea { width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(124,58,237,0.3); border-radius: 12px; color: white; font-size: 16px; }
+    input:focus, textarea:focus { outline: none; border-color: #7c3aed; }
+    textarea { resize: vertical; min-height: 100px; }
+    .btn-primary { width: 100%; padding: 14px; background: linear-gradient(135deg, #7c3aed, #a855f7); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .preview-section { background: rgba(15,23,42,0.7); backdrop-filter: blur(10px); border-radius: 24px; padding: 30px; }
+    .preview-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; margin-top: 15px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .preview-avatar { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #a855f7); display: flex; align-items: center; justify-content: center; }
+    .message { padding: 14px; border-radius: 12px; margin-bottom: 25px; text-align: center; }
+    .success { background: rgba(34,197,94,0.2); border: 1px solid #22c55e; color: #22c55e; }
+    .error { background: rgba(239,68,68,0.2); border: 1px solid #ef4444; color: #ef4444; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15,23,42,0.95); backdrop-filter: blur(10px);
+      display: flex; justify-content: space-around; padding: 12px 20px; border-top: 1px solid rgba(124,58,237,0.2); z-index: 100;
+    }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #94a3b8; text-decoration: none; font-size: 11px; cursor: pointer; padding: 5px 15px; border-radius: 10px; }
+    .nav-item:hover, .nav-item.active { color: #7c3aed; background: rgba(124,58,237,0.1); }
+    @media (max-width: 640px) { .container { padding: 15px; padding-bottom: 80px; } .profile-section, .preview-section { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header"><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button><div class="logo">Edit Profile</div></div>
+    <div id="messageContainer"></div>
+    <div class="profile-section">
+      <div class="avatar-section">
+        <div class="avatar-preview" onclick="document.getElementById('avatarInput').click()">
+          <i class="fas fa-user" id="avatarIcon"></i><img id="avatarImg" style="display:none">
+          <div class="avatar-overlay"><i class="fas fa-camera"></i> Change</div>
+        </div>
+        <input type="file" id="avatarInput" class="avatar-input" accept="image/jpeg,image/png">
+        <div><button class="change-avatar-btn" onclick="document.getElementById('avatarInput').click()">Upload Avatar</button></div>
+      </div>
+      <form id="profileForm">
+        <div class="form-group"><label><i class="fas fa-user-circle"></i> Display Name</label><input type="text" id="displayName" required></div>
+        <div class="form-group"><label><i class="fas fa-at"></i> Username</label><input type="text" id="username" required></div>
+        <div class="form-group"><label><i class="fas fa-align-left"></i> Bio</label><textarea id="bio" placeholder="Tell about yourself..."></textarea></div>
+        <div class="form-group"><label><i class="fas fa-map-marker-alt"></i> Location</label><input type="text" id="location" placeholder="City, Country"></div>
+        <button type="submit" class="btn-primary">Save Changes</button>
+      </form>
+    </div>
+    <div class="preview-section"><h3>Preview</h3><div class="preview-card" id="previewCard"><div class="preview-avatar" id="previewAvatar"><i class="fas fa-user"></i></div><div><strong id="previewName">Your Name</strong><div id="previewHandle">@username</div><p id="previewBio" style="color:#94a3b8; margin-top:8px">Bio here</p><p id="previewLocation"><i class="fas fa-map-marker-alt"></i> Location</p></div></div></div>
+    <div class="bottom-nav"><div class="nav-item" onclick="window.location.href='home.html'"><i class="fas fa-home"></i><span>Home</span></div><div class="nav-item active"><i class="fas fa-user-edit"></i><span>Profile</span></div><div class="nav-item" onclick="window.location.href='search.html'"><i class="fas fa-search"></i><span>Find</span></div></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let currentUser = null, currentAvatarUrl = null;
+    function showMessage(text, type) { const c = document.getElementById('messageContainer'); c.innerHTML = `<div class="message ${type}">${text}</div>`; setTimeout(() => c.innerHTML = '', 5000); }
+    async function checkAuth() { const { data: { session } } = await _supabase.auth.getSession(); if (!session) { window.location.href = 'login.html'; return null; } currentUser = session.user; return currentUser; }
+    async function loadProfile() {
+      const { data } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+      if (data) {
+        document.getElementById('displayName').value = data.display_name || '';
+        document.getElementById('username').value = data.username || '';
+        document.getElementById('bio').value = data.bio || '';
+        document.getElementById('location').value = data.location || '';
+        if (data.avatar_url) {
+          currentAvatarUrl = data.avatar_url;
+          document.getElementById('avatarImg').src = data.avatar_url;
+          document.getElementById('avatarImg').style.display = 'block';
+          document.getElementById('avatarIcon').style.display = 'none';
+          document.getElementById('previewAvatar').innerHTML = `<img src="${data.avatar_url}" style="width:100%;height:100%;border-radius:50%">`;
+        }
+        updatePreview();
+      }
+    }
+    function updatePreview() {
+      document.getElementById('previewName').textContent = document.getElementById('displayName').value || 'Your Name';
+      document.getElementById('previewHandle').textContent = `@${(document.getElementById('username').value || 'username').toLowerCase()}`;
+      document.getElementById('previewBio').textContent = document.getElementById('bio').value || 'Your bio here';
+      document.getElementById('previewLocation').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${document.getElementById('location').value || 'Location not set'}`;
+    }
+    async function uploadAvatar(file) {
+      const fileName = `${currentUser.id}_${Date.now()}.${file.name.split('.').pop()}`;
+      const { error } = await _supabase.storage.from('avatars').upload(fileName, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = _supabase.storage.from('avatars').getPublicUrl(fileName);
+      return publicUrl;
+    }
+    document.getElementById('avatarInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { showMessage('File too large (max 2MB)', 'error'); return; }
+      try {
+        const url = await uploadAvatar(file);
+        currentAvatarUrl = url;
+        document.getElementById('avatarImg').src = url;
+        document.getElementById('avatarImg').style.display = 'block';
+        document.getElementById('avatarIcon').style.display = 'none';
+        document.getElementById('previewAvatar').innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%">`;
+        showMessage('Avatar uploaded! Click Save', 'success');
+      } catch (error) { showMessage('Upload failed', 'error'); }
+    });
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const updateData = {
+        display_name: document.getElementById('displayName').value,
+        username: document.getElementById('username').value.toLowerCase(),
+        bio: document.getElementById('bio').value,
+        location: document.getElementById('location').value
+      };
+      if (currentAvatarUrl) updateData.avatar_url = currentAvatarUrl;
+      const { error } = await _supabase.from('profiles').update(updateData).eq('id', currentUser.id);
+      if (error) showMessage('Error: ' + error.message, 'error');
+      else { showMessage('Profile updated!', 'success'); updatePreview(); }
+    });
+    document.getElementById('displayName').addEventListener('input', updatePreview);
+    document.getElementById('username').addEventListener('input', updatePreview);
+    document.getElementById('bio').addEventListener('input', updatePreview);
+    document.getElementById('location').addEventListener('input', updatePreview);
+    function goBack() { window.location.href = 'home.html'; }
+    async function init() { await checkAuth(); if (currentUser) await loadProfile(); }
+    init();
+  </script>
+</body>
+</html>

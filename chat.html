@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="description" content="Real-time private messaging on zerøbyte">
+  <meta name="theme-color" content="#7c3aed">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%237c3aed'/%3E%3Ctext x='96' y='130' font-size='75' text-anchor='middle' fill='white' font-weight='bold'%3EZB%3C/text%3E%3C/svg%3E">
+  <title>zerøbyte | Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #ffffff;
+    }
+    .chat-header {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+      flex-shrink: 0;
+    }
+    .back-btn {
+      background: rgba(124, 58, 237, 0.2);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      color: #7c3aed;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+      background: #7c3aed;
+      color: white;
+    }
+    .friend-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .friend-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .friend-info {
+      flex: 1;
+    }
+    .friend-name {
+      font-weight: bold;
+      font-size: 17px;
+    }
+    .friend-status {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .friend-status.online {
+      color: #22c55e;
+    }
+    .chat-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .chat-actions button {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .chat-actions button:hover {
+      color: #7c3aed;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .message {
+      display: flex;
+      margin-bottom: 4px;
+      animation: fadeIn 0.15s ease;
+      position: relative;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message.sent {
+      justify-content: flex-end;
+    }
+    .message.received {
+      justify-content: flex-start;
+    }
+    .message-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      position: relative;
+      transition: all 0.1s ease;
+    }
+    .message.sent .message-bubble {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border-bottom-right-radius: 4px;
+    }
+    .message.received .message-bubble {
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-left-radius: 4px;
+    }
+    .message-text {
+      font-size: 14px;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+    .edited-badge {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-left: 5px;
+    }
+    .message-time {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 4px;
+      text-align: right;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 5px;
+    }
+    .reply-preview {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 5px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .reply-preview i {
+      margin-right: 4px;
+    }
+    .message-actions-menu {
+      position: absolute;
+      background: #1e1b4b;
+      border-radius: 12px;
+      padding: 6px;
+      display: none;
+      gap: 5px;
+      z-index: 10;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      border: 1px solid rgba(124,58,237,0.3);
+    }
+    .message-actions-menu button {
+      background: none;
+      border: none;
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+    .message-actions-menu button:hover {
+      background: rgba(124, 58, 237, 0.3);
+    }
+    .message-actions-menu button.delete {
+      color: #ef4444;
+    }
+    .pinned-banner {
+      background: rgba(124, 58, 237, 0.2);
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 10px;
+      font-size: 11px;
+      border-left: 3px solid #7c3aed;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .replying-indicator {
+      background: rgba(124, 58, 237, 0.2);
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 10px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: slideDown 0.2s ease;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chat-input-area {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 15px;
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid rgba(124, 58, 237, 0.2);
+      flex-shrink: 0;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+      border-radius: 25px;
+      color: white;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+    .chat-input:focus {
+      outline: none;
+      border-color: #7c3aed;
+    }
+    .btn-send {
+      padding: 12px 22px;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .btn-send:hover {
+      transform: scale(1.02);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #1e1b4b;
+      padding: 25px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 400px;
+      border: 1px solid rgba(124,58,237,0.3);
+    }
+    .modal-content h3 {
+      margin-bottom: 15px;
+      color: #cbd5e1;
+    }
+    .modal-content input, .modal-content textarea, .modal-content select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid #7c3aed;
+      border-radius: 10px;
+      color: white;
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .btn-confirm {
+      flex: 1;
+      background: #7c3aed;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    .btn-cancel {
+      flex: 1;
+      background: #ef4444;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    .friend-list-item {
+      padding: 12px;
+      margin: 8px 0;
+      background: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.2s;
+    }
+    .friend-list-item:hover {
+      background: rgba(124,58,237,0.3);
+    }
+    .search-result-item {
+      padding: 10px;
+      margin: 5px 0;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .search-result-item:hover {
+      background: rgba(124,58,237,0.2);
+    }
+    @media (max-width: 640px) {
+      .message-bubble { max-width: 85%; }
+      .message-actions-menu button { padding: 4px 10px; font-size: 11px; }
+      .btn-send { padding: 12px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-header">
+    <button class="back-btn" onclick="closeChat()"><i class="fas fa-arrow-left"></i></button>
+    <div class="friend-avatar" id="friendAvatar"><i class="fas fa-user"></i></div>
+    <div class="friend-info">
+      <div class="friend-name" id="friendName">Loading...</div>
+      <div class="friend-status" id="friendStatus">Offline</div>
+    </div>
+    <div class="chat-actions">
+      <button onclick="openSearchModal()"><i class="fas fa-search"></i></button>
+      <button onclick="openPinnedModal()"><i class="fas fa-thumbtack"></i></button>
+    </div>
+  </div>
+
+  <div class="chat-messages" id="chatMessages"></div>
+
+  <!-- Reply Indicator -->
+  <div id="replyIndicator" class="replying-indicator" style="display:none">
+    <span><i class="fas fa-reply"></i> Replying to: <span id="replyingToText"></span></span>
+    <button onclick="cancelReply()" style="background:none; border:none; color:#ef4444; cursor:pointer">✕</button>
+  </div>
+
+  <div class="chat-input-area">
+    <input type="text" class="chat-input" id="messageInput" placeholder="Type a message...">
+    <button class="btn-send" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send</button>
+  </div>
+
+  <!-- Edit Message Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3><i class="fas fa-edit"></i> Edit Message</h3>
+      <input type="text" id="editInput" placeholder="Edit your message...">
+      <div class="modal-buttons">
+        <button class="btn-confirm" onclick="confirmEdit()">Save</button>
+        <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forward Modal -->
+  <div id="forwardModal" class="modal">
+    <div class="modal-content">
+      <h3><i class="fas fa-share"></i> Forward to...</h3>
+      <div id="friendsListForForward" style="max-height:300px; overflow-y:auto"></div>
+      <button class="btn-cancel" onclick="closeForwardModal()" style="margin-top:10px">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Search Messages Modal -->
+  <div id="searchModal" class="modal">
+    <div class="modal-content">
+      <h3><i class="fas fa-search"></i> Search Messages</h3>
+      <input type="text" id="searchQuery" placeholder="Type to search...">
+      <button class="btn-confirm" onclick="searchMessages()">Search</button>
+      <div id="searchResults" style="margin-top:15px; max-height:300px; overflow-y:auto"></div>
+      <button class="btn-cancel" onclick="closeSearchModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- Pinned Messages Modal -->
+  <div id="pinnedModal" class="modal">
+    <div class="modal-content">
+      <h3><i class="fas fa-thumbtack"></i> Pinned Messages</h3>
+      <div id="pinnedList" style="max-height:300px; overflow-y:auto"></div>
+      <button class="btn-cancel" onclick="closePinnedModal()">Close</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUser = null;
+    let friendId = null;
+    let messageCache = [];
+    let replyingTo = null;
+    let editingMessageId = null;
+    let forwardingMessage = null;
+
+    // ============================================
+    // AUTH & INIT
+    // ============================================
+    async function checkAuth() {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return null;
+      }
+      currentUser = session.user;
+      return currentUser;
+    }
+
+    function closeChat() {
+      window.location.href = 'home.html';
+    }
+
+    // ============================================
+    // LOAD FRIEND INFO
+    // ============================================
+    async function loadFriendInfo() {
+      friendId = localStorage.getItem('chatFriendId');
+      const friendName = localStorage.getItem('chatFriendName');
+      if (!friendId) { closeChat(); return; }
+      document.getElementById('friendName').textContent = friendName;
+      const { data: friend } = await _supabase
+        .from('profiles')
+        .select('is_online, avatar_url')
+        .eq('id', friendId)
+        .single();
+      if (friend) {
+        const statusEl = document.getElementById('friendStatus');
+        if (friend.is_online) {
+          statusEl.textContent = 'Online';
+          statusEl.classList.add('online');
+        } else {
+          statusEl.textContent = 'Offline';
+          statusEl.classList.remove('online');
+        }
+        if (friend.avatar_url) {
+          document.getElementById('friendAvatar').innerHTML = `<img src="${friend.avatar_url}" alt="avatar">`;
+        }
+      }
+    }
+
+    // ============================================
+    // LOAD MESSAGES
+    // ============================================
+    async function loadMessages() {
+      const { data: messages } = await _supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id})`)
+        .order('created_at', { ascending: true });
+      
+      if (messages) {
+        messageCache = messages;
+        displayMessages();
+        
+        // Mark unread messages as read
+        const unreadMessages = messages.filter(m => m.receiver_id === currentUser.id && !m.is_read);
+        for (const msg of unreadMessages) {
+          await _supabase.from('messages').update({ is_read: true }).eq('id', msg.id);
+        }
+      }
+    }
+
+    // ============================================
+    // DISPLAY MESSAGES
+    // ============================================
+    function displayMessages() {
+      const container = document.getElementById('chatMessages');
+      const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      container.innerHTML = '';
+      
+      for (const msg of messageCache) {
+        const isSent = msg.sender_id === currentUser.id;
+        const div = document.createElement('div');
+        div.className = `message ${isSent ? 'sent' : 'received'}`;
+        div.setAttribute('data-message-id', msg.id);
+        
+        const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const isPinned = msg.is_pinned;
+        
+        let replyHtml = '';
+        if (msg.reply_to) {
+          replyHtml = `<div class="reply-preview"><i class="fas fa-reply"></i> ${escapeHtml(msg.reply_to.substring(0, 60))}${msg.reply_to.length > 60 ? '...' : ''}</div>`;
+        }
+        
+        div.innerHTML = `
+          <div class="message-bubble" oncontextmenu="showMessageMenu(event, '${msg.id}', '${escapeHtml(msg.content)}', ${isSent})">
+            ${isPinned ? '<i class="fas fa-thumbtack" style="font-size:10px; margin-right:5px; color:#7c3aed"></i>' : ''}
+            ${replyHtml}
+            <div class="message-text">${escapeHtml(msg.content)}</div>
+            <div class="message-time">
+              ${time}
+              ${msg.edited ? '<span class="edited-badge">edited</span>' : ''}
+              ${isSent ? `<span class="message-status">${msg.is_read ? '✓✓' : '✓'}</span>` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      }
+      if (shouldScroll) { container.scrollTop = container.scrollHeight; }
+    }
+
+    // ============================================
+    // MESSAGE ACTIONS MENU
+    // ============================================
+    function showMessageMenu(event, messageId, content, isSent) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      const existingMenu = document.querySelector('.message-actions-menu');
+      if (existingMenu) existingMenu.remove();
+      
+      const menu = document.createElement('div');
+      menu.className = 'message-actions-menu';
+      menu.style.position = 'fixed';
+      menu.style.left = `${event.pageX - 80}px`;
+      menu.style.top = `${event.pageY - 40}px`;
+      
+      let buttons = '';
+      
+      if (isSent) {
+        buttons += `<button onclick="openEditModal('${messageId}', '${escapeHtml(content)}')"><i class="fas fa-edit"></i> Edit</button>`;
+        buttons += `<button class="delete" onclick="deleteMessage('${messageId}', true)"><i class="fas fa-trash-alt"></i> Delete for Everyone</button>`;
+        buttons += `<button class="delete" onclick="deleteMessage('${messageId}', false)"><i class="fas fa-user-slash"></i> Delete for Me</button>`;
+      }
+      
+      buttons += `<button onclick="pinMessage('${messageId}')"><i class="fas fa-thumbtack"></i> Pin</button>`;
+      buttons += `<button onclick="startReply('${messageId}', '${escapeHtml(content)}')"><i class="fas fa-reply"></i> Reply</button>`;
+      buttons += `<button onclick="openForwardModal('${messageId}', '${escapeHtml(content)}')"><i class="fas fa-share"></i> Forward</button>`;
+      
+      menu.innerHTML = buttons;
+      document.body.appendChild(menu);
+      menu.style.display = 'flex';
+      
+      setTimeout(() => {
+        document.addEventListener('click', function removeMenu(e) {
+          if (!menu.contains(e.target)) {
+            menu.remove();
+            document.removeEventListener('click', removeMenu);
+          }
+        });
+      }, 10);
+    }
+
+    // ============================================
+    // DELETE MESSAGE
+    // ============================================
+    window.deleteMessage = async (messageId, forEveryone = true) => {
+      if (forEveryone) {
+        if (confirm('Delete this message for everyone? This cannot be undone.')) {
+          await _supabase.from('messages').delete().eq('id', messageId);
+        }
+      } else {
+        await _supabase.from('messages').update({ deleted_for: currentUser.id }).eq('id', messageId);
+      }
+      await loadMessages();
+    };
+
+    // ============================================
+    // EDIT MESSAGE
+    // ============================================
+    window.openEditModal = (messageId, currentContent) => {
+      editingMessageId = messageId;
+      document.getElementById('editInput').value = currentContent;
+      document.getElementById('editModal').style.display = 'flex';
+    };
+
+    window.confirmEdit = async () => {
+      const newContent = document.getElementById('editInput').value.trim();
+      if (!newContent) return;
+      
+      await _supabase
+        .from('messages')
+        .update({ content: newContent, edited: true })
+        .eq('id', editingMessageId);
+      
+      closeEditModal();
+      await loadMessages();
+    };
+
+    window.closeEditModal = () => {
+      document.getElementById('editModal').style.display = 'none';
+      editingMessageId = null;
+    };
+
+    // ============================================
+    // PIN MESSAGE
+    // ============================================
+    window.pinMessage = async (messageId) => {
+      const message = messageCache.find(m => m.id === messageId);
+      await _supabase
+        .from('messages')
+        .update({ is_pinned: !message?.is_pinned })
+        .eq('id', messageId);
+      await loadMessages();
+    };
+
+    // ============================================
+    // REPLY TO MESSAGE
+    // ============================================
+    window.startReply = (messageId, content) => {
+      replyingTo = { id: messageId, content: content };
+      document.getElementById('replyingToText').textContent = content.substring(0, 50) + (content.length > 50 ? '...' : '');
+      document.getElementById('replyIndicator').style.display = 'flex';
+    };
+
+    window.cancelReply = () => {
+      replyingTo = null;
+      document.getElementById('replyIndicator').style.display = 'none';
+    };
+
+    // ============================================
+    // FORWARD MESSAGE
+    // ============================================
+    window.openForwardModal = async (messageId, content) => {
+      forwardingMessage = { id: messageId, content: content };
+      
+      const { data: connections } = await _supabase
+        .from('connections')
+        .select('*')
+        .or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`)
+        .eq('status', 'accepted');
+      
+      const friendIds = connections.map(c => c.user_id === currentUser.id ? c.friend_id : c.user_id);
+      const { data: friends } = await _supabase
+        .from('profiles')
+        .select('id, display_name, username, avatar_url')
+        .in('id', friendIds);
+      
+      const container = document.getElementById('friendsListForForward');
+      container.innerHTML = '';
+      for (const friend of friends || []) {
+        container.innerHTML += `
+          <div class="friend-list-item" onclick="forwardMessageTo('${friend.id}')">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center">
+              ${friend.avatar_url ? `<img src="${friend.avatar_url}" style="width:100%;height:100%;border-radius:50%">` : '<i class="fas fa-user"></i>'}
+            </div>
+            <span>${escapeHtml(friend.display_name || friend.username)}</span>
+          </div>
+        `;
+      }
+      
+      document.getElementById('forwardModal').style.display = 'flex';
+    };
+
+    window.forwardMessageTo = async (targetFriendId) => {
+      await _supabase.from('messages').insert([{
+        sender_id: currentUser.id,
+        receiver_id: targetFriendId,
+        content: `📨 Forwarded: ${forwardingMessage.content}`,
+        is_read: false
+      }]);
+      closeForwardModal();
+      alert('✓ Message forwarded!');
+    };
+
+    window.closeForwardModal = () => {
+      document.getElementById('forwardModal').style.display = 'none';
+      forwardingMessage = null;
+    };
+
+    // ============================================
+    // SEARCH MESSAGES
+    // ============================================
+    window.openSearchModal = () => {
+      document.getElementById('searchModal').style.display = 'flex';
+      document.getElementById('searchResults').innerHTML = '';
+      document.getElementById('searchQuery').value = '';
+    };
+
+    window.searchMessages = () => {
+      const query = document.getElementById('searchQuery').value.toLowerCase();
+      const results = messageCache.filter(m => m.content.toLowerCase().includes(query));
+      
+      const container = document.getElementById('searchResults');
+      if (results.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8; text-align:center">No messages found</p>';
+        return;
+      }
+      
+      container.innerHTML = results.map(m => `
+        <div class="search-result-item" onclick="scrollToMessage('${m.id}')">
+          <div style="font-size:11px; color:#7c3aed">${new Date(m.created_at).toLocaleString()}</div>
+          <div style="font-size:13px">${escapeHtml(m.content.substring(0, 80))}${m.content.length > 80 ? '...' : ''}</div>
+        </div>
+      `).join('');
+    };
+
+    function scrollToMessage(messageId) {
+      const element = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.style.backgroundColor = 'rgba(124, 58, 237, 0.3)';
+        setTimeout(() => {
+          element.style.backgroundColor = '';
+        }, 2000);
+      }
+      closeSearchModal();
+    }
+
+    window.closeSearchModal = () => {
+      document.getElementById('searchModal').style.display = 'none';
+    };
+
+    // ============================================
+    // PINNED MESSAGES VIEW
+    // ============================================
+    window.openPinnedModal = () => {
+      const pinnedMessages = messageCache.filter(m => m.is_pinned);
+      const container = document.getElementById('pinnedList');
+      
+      if (pinnedMessages.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8; text-align:center">No pinned messages</p>';
+      } else {
+        container.innerHTML = pinnedMessages.map(m => `
+          <div class="search-result-item" onclick="scrollToMessage('${m.id}')">
+            <div style="font-size:11px; color:#7c3aed">${new Date(m.created_at).toLocaleString()}</div>
+            <div style="font-size:13px">${escapeHtml(m.content.substring(0, 80))}${m.content.length > 80 ? '...' : ''}</div>
+          </div>
+        `).join('');
+      }
+      
+      document.getElementById('pinnedModal').style.display = 'flex';
+    };
+
+    window.closePinnedModal = () => {
+      document.getElementById('pinnedModal').style.display = 'none';
+    };
+
+    // ============================================
+    // SEND MESSAGE (with reply support)
+    // ============================================
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+      
+      const messageData = {
+        sender_id: currentUser.id,
+        receiver_id: friendId,
+        content: content,
+        is_read: false
+      };
+      
+      if (replyingTo) {
+        messageData.reply_to = replyingTo.content;
+        messageData.reply_to_id = replyingTo.id;
+      }
+      
+      const { error } = await _supabase.from('messages').insert([messageData]);
+      
+      if (!error) {
+        input.value = '';
+        cancelReply();
+        await loadMessages();
+      }
+    }
+
+    // ============================================
+    // UTILITIES
+    // ============================================
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ============================================
+    // REALTIME SETUP
+    // ============================================
+    function setupRealtime() {
+      _supabase
+        .channel('chat-messages')
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'messages',
+          filter: `receiver_id=eq.${currentUser.id},sender_id=eq.${friendId}`
+        }, () => {
+          loadMessages();
+        })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'messages',
+          filter: `sender_id=eq.${currentUser.id},receiver_id=eq.${friendId}`
+        }, () => {
+          loadMessages();
+        })
+        .subscribe();
+    }
+
+    // ============================================
+    // KEYBOARD SHORTCUTS
+    // ============================================
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    async function init() {
+      await checkAuth();
+      if (currentUser) {
+        await loadFriendInfo();
+        await loadMessages();
+        setupRealtime();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
