@@ -2,7 +2,7 @@
   "name": "zerøbyte",
   "short_name": "zerøbyte",
   "description": "Connect, Chat, Collaborate - Real-time messaging platform",
-  "start_url": "/home.html",
+  "start_url": "/login.html",
   "display": "standalone",
   "theme_color": "#7c3aed",
   "background_color": "#0f172a",
@@ -50,30 +50,40 @@
   ],
   "shortcuts": [
     {
-      "name": "New Chat",
-      "short_name": "Chat",
-      "description": "Start a new conversation",
-      "url": "/search.html",
+      "name": "Login",
+      "short_name": "Login",
+      "description": "Sign in to your account",
+      "url": "/login.html",
       "icons": [
         {
-          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%237c3aed'/%3E%3Ctext x='48' y='66' font-size='45' text-anchor='middle' fill='white'%3E%2B%3C/text%3E%3C/svg%3E",
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%237c3aed'/%3E%3Ctext x='48' y='66' font-size='45' text-anchor='middle' fill='white'%3E🔐%3C/text%3E%3C/svg%3E",
           "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "My Profile",
-      "short_name": "Profile",
-      "description": "Edit your profile",
-      "url": "/profile.html",
+      "name": "Sign Up",
+      "short_name": "Sign Up",
+      "description": "Create new account",
+      "url": "/signup.html",
       "icons": [
         {
-          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%237c3aed'/%3E%3Ccircle cx='48' cy='38' r='18' fill='white'/%3E%3Cpath d='M18 78 Q48 55 78 78' fill='white'/%3E%3C/svg%3E",
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='20' fill='%237c3aed'/%3E%3Ctext x='48' y='66' font-size='45' text-anchor='middle' fill='white'%3E➕%3C/text%3E%3C/svg%3E",
           "sizes": "96x96"
         }
       ]
     }
   ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1080 1920'%3E%3Crect width='1080' height='1920' fill='%230f172a'/%3E%3Crect y='100' width='1080' height='100' fill='%237c3aed' opacity='0.9'/%3E%3Ctext x='540' y='165' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3Ezer%C3%B8byte%3C/text%3E%3C/svg%3E",
+      "sizes": "1080x1920",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "scope": "/",
+  "id": "/"
 }
