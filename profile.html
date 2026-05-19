@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#3B82F6">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="zerøbyte">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/3B82F6/white?text=ZB">
+  
+  <title>zerøbyte | Profile</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #F0F9FF;
+      color: #1E293B;
+      padding-bottom: 75px;
+    }
+    .header {
+      background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .logo { font-size: 22px; font-weight: bold; background: linear-gradient(135deg, #3B82F6, #06B6D4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .header i { font-size: 20px; color: #64748B; cursor: pointer; }
+    .profile-container { background: white; margin: 15px; border-radius: 28px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; }
+    .profile-cover { height: 120px; background: linear-gradient(135deg, #3B82F6, #06B6D4); }
+    .profile-avatar { position: absolute; top: 70px; left: 20px; width: 100px; height: 100px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; border: 4px solid white; cursor: pointer; overflow: hidden; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-avatar i { font-size: 40px; color: #94A3B8; }
+    .profile-info { padding: 70px 20px 20px 20px; background: white; }
+    .profile-name { font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .profile-handle { color: #64748B; margin: 5px 0 15px 0; font-size: 14px; }
+    .profile-bio { margin-bottom: 12px; line-height: 1.5; }
+    .profile-location { color: #64748B; margin-bottom: 20px; font-size: 14px; }
+    .edit-btn { background: linear-gradient(135deg, #3B82F6, #06B6D4); color: white; border: none; padding: 12px; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; }
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; background: white; margin: 15px; border-radius: 28px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .stat-number { font-size: 24px; font-weight: bold; color: #3B82F6; }
+    .stat-label { font-size: 12px; color: #64748B; margin-top: 5px; }
+    .posts-section { padding: 0 15px; margin-bottom: 20px; }
+    .posts-section h3 { margin-bottom: 15px; font-size: 18px; }
+    .post-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .post-content { margin-bottom: 8px; line-height: 1.4; }
+    .post-time { font-size: 11px; color: #64748B; }
+    .empty-state { text-align: center; padding: 40px; color: #94A3B8; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.98); backdrop-filter: blur(20px);
+      display: flex; justify-content: space-around; padding: 12px 20px;
+      border-top: 1px solid rgba(59,130,246,0.1); z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: #94A3B8; cursor: pointer; font-size: 11px;
+      padding: 6px 16px; border-radius: 30px;
+    }
+    .nav-item i { font-size: 22px; }
+    .nav-item:hover, .nav-item.active { color: #3B82F6; background: rgba(59,130,246,0.1); }
+    .avatar-input { display: none; }
+    .verified-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%; font-size: 11px;
+    }
+    .verified-badge.blue { background: #3B82F6; color: white; }
+    .verified-badge.gold { background: #F59E0B; color: white; }
+    .verified-badge.purple { background: #8B5CF6; color: white; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">zerøbyte</div>
+    <i class="fas fa-search" onclick="location.href='search.html'"></i>
+  </div>
+  <div class="profile-container">
+    <div class="profile-cover"></div>
+    <div class="profile-avatar" onclick="document.getElementById('avatarInput').click()">
+      <i class="fas fa-user" id="avatarIcon"></i><img id="avatarImg" style="display:none">
+      <input type="file" id="avatarInput" class="avatar-input" accept="image/*">
+    </div>
+    <div class="profile-info">
+      <div class="profile-name"><span id="displayName">Loading...</span><span id="verifiedBadge"></span></div>
+      <div class="profile-handle" id="userHandle">@loading</div>
+      <div class="profile-bio" id="userBio">No bio yet</div>
+      <div class="profile-location" id="userLocation"><i class="fas fa-map-marker-alt"></i> <span>Location not set</span></div>
+      <button class="edit-btn" onclick="location.href='edit-profile.html'">Edit Profile</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div><div class="stat-number" id="postsCount">0</div><div class="stat-label">Posts</div></div>
+    <div><div class="stat-number" id="friendsCount">0</div><div class="stat-label">Friends</div></div>
+    <div><div class="stat-number" id="followersCount">0</div><div class="stat-label">Followers</div></div>
+  </div>
+  <div class="posts-section"><h3><i class="fas fa-newspaper"></i> My Posts</h3><div id="userPosts"><div class="empty-state">Loading...</div></div></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="location.href='home.html'"><i class="fas fa-home"></i><span>Feed</span></div>
+    <div class="nav-item" onclick="location.href='chats.html'"><i class="fas fa-comments"></i><span>Chats</span></div>
+    <div class="nav-item" onclick="location.href='group-chat.html'"><i class="fas fa-users"></i><span>Groups</span></div>
+    <div class="nav-item active" onclick="location.href='profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
+    <div class="nav-item" onclick="location.href='settings.html'"><i class="fas fa-cog"></i><span>Settings</span></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }
+    let currentUser = null;
+    function getVerificationBadge(user) { if (!user?.is_verified) return ''; const bc = user.verification_badge || 'blue'; const icon = bc === 'gold' ? '⭐' : (bc === 'purple' ? '💜' : '✅'); return `<span class="verified-badge ${bc}">${icon}</span>`; }
+    async function checkAuth() { const { data: { session } } = await _supabase.auth.getSession(); if (!session) { location.href = 'login.html'; return null; } currentUser = session.user; return currentUser; }
+    async function loadProfile() {
+      const { data } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+      if (data) {
+        document.getElementById('displayName').innerHTML = `${data.display_name || data.username} ${getVerificationBadge(data)}`;
+        document.getElementById('userHandle').textContent = `@${data.user_handle || data.username}`;
+        document.getElementById('userBio').textContent = data.bio || 'No bio yet';
+        if (data.location) document.getElementById('userLocation').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${data.location}`;
+        if (data.avatar_url) { document.getElementById('avatarImg').src = data.avatar_url; document.getElementById('avatarImg').style.display = 'block'; document.getElementById('avatarIcon').style.display = 'none'; }
+        const { count: postsCount } = await _supabase.from('posts').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+        document.getElementById('postsCount').textContent = postsCount || 0;
+        const { count: friendsCount } = await _supabase.from('connections').select('*', { count: 'exact', head: true }).or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`).eq('status', 'accepted');
+        document.getElementById('friendsCount').textContent = friendsCount || 0;
+        await loadUserPosts();
+      }
+    }
+    async function loadUserPosts() {
+      const { data: posts } = await _supabase.from('posts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+      const container = document.getElementById('userPosts');
+      if (!posts || posts.length === 0) { container.innerHTML = '<div class="empty-state"><i class="fas fa-newspaper" style="font-size:32px; margin-bottom:10px"></i><p>No posts yet</p></div>'; return; }
+      let html = '';
+      for (const post of posts) { html += `<div class="post-card"><div class="post-content">${escapeHtml(post.content)}</div><div class="post-time">${formatTime(post.created_at)}</div></div>`; }
+      container.innerHTML = html;
+    }
+    function formatTime(ts) { const d = new Date(ts); const n = new Date(); const diff = n - d; if (diff < 60000) return 'Just now'; if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`; if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`; return d.toLocaleDateString(); }
+    async function uploadAvatar(file) { const fn = `${currentUser.id}_${Date.now()}.${file.name.split('.').pop()}`; const { error } = await _supabase.storage.from('avatars').upload(fn, file); if (error) { alert('Upload failed'); return; } const { data: { publicUrl } } = _supabase.storage.from('avatars').getPublicUrl(fn); await _supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', currentUser.id); location.reload(); }
+    document.getElementById('avatarInput').addEventListener('change', async (e) => { if (e.target.files[0]) await uploadAvatar(e.target.files[0]); });
+    function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+    async function init() { await checkAuth(); if (currentUser) await loadProfile(); }
+    init();
+  </script>
+</body>
+</html>

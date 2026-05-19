@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#3B82F6">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="zerøbyte">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/3B82F6/white?text=ZB">
+  
+  <title>zerøbyte | Group Settings</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #F0F9FF;
+      color: #1E293B;
+      padding-bottom: 75px;
+    }
+    .header {
+      background: white; padding: 15px 20px; display: flex; align-items: center; gap: 15px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .back-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #3B82F6; }
+    .header h1 { font-size: 20px; }
+    .group-info { background: white; padding: 20px; margin: 15px; border-radius: 28px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .group-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #06B6D4); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 32px; }
+    .group-name { font-size: 22px; font-weight: bold; margin-bottom: 5px; }
+    .group-stats { color: #64748B; font-size: 13px; margin-bottom: 20px; }
+    .edit-group-btn { background: #3B82F6; color: white; border: none; padding: 10px; border-radius: 40px; cursor: pointer; width: 100%; font-weight: 600; }
+    .section { background: white; margin: 15px; border-radius: 28px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .section-header { padding: 15px 20px; background: #F8FAFC; font-weight: 600; border-bottom: 1px solid #E2E8F0; }
+    .member-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid #F1F5F9; }
+    .member-info { display: flex; align-items: center; gap: 12px; }
+    .member-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #06B6D4); display: flex; align-items: center; justify-content: center; }
+    .admin-badge { background: #FEF3C7; color: #D97706; font-size: 10px; padding: 2px 8px; border-radius: 12px; margin-left: 8px; }
+    .remove-btn { background: #FEE2E2; color: #DC2626; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; }
+    .add-member { display: flex; gap: 10px; padding: 15px 20px; }
+    .add-member input { flex: 1; padding: 10px; border: 1px solid #E2E8F0; border-radius: 25px; outline: none; }
+    .add-member button { background: #3B82F6; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; }
+    .leave-btn { background: #FEE2E2; color: #DC2626; border: none; padding: 15px; border-radius: 16px; font-weight: 600; cursor: pointer; width: calc(100% - 30px); margin: 15px; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.98); backdrop-filter: blur(20px);
+      display: flex; justify-content: space-around; padding: 12px 20px;
+      border-top: 1px solid rgba(59,130,246,0.1); z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: #94A3B8; cursor: pointer; font-size: 11px;
+      padding: 6px 16px; border-radius: 30px;
+    }
+    .nav-item i { font-size: 22px; }
+    .nav-item:hover, .nav-item.active { color: #3B82F6; background: rgba(59,130,246,0.1); }
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 200;
+    }
+    .modal-content { background: white; padding: 25px; border-radius: 28px; width: 90%; max-width: 400px; }
+    .modal-content input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #E2E8F0; border-radius: 16px; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .modal-buttons button { flex: 1; padding: 10px; border: none; border-radius: 16px; cursor: pointer; }
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #22C55E; color: white; padding: 10px 20px; border-radius: 50px;
+      font-size: 14px; z-index: 1000; display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="back-btn" onclick="location.href='group-chat.html'"><i class="fas fa-arrow-left"></i></button>
+    <h1>Group Settings</h1>
+  </div>
+  <div id="toast" class="toast"></div>
+  <div class="group-info"><div class="group-avatar"><i class="fas fa-users"></i></div><div class="group-name" id="groupName">Loading...</div><div class="group-stats" id="groupStats">Loading members...</div><button class="edit-group-btn" onclick="openEditModal()"><i class="fas fa-edit"></i> Edit Group</button></div>
+  <div class="section"><div class="section-header"><i class="fas fa-users"></i> Members (<span id="memberCount">0</span>)</div><div id="membersList"></div><div class="add-member"><input type="text" id="newMemberEmail" placeholder="Search by email or username..."><button onclick="addMember()"><i class="fas fa-plus"></i> Add</button></div></div>
+  <button class="leave-btn" onclick="leaveGroup()"><i class="fas fa-sign-out-alt"></i> Leave Group</button>
+  <div id="editModal" class="modal"><div class="modal-content"><h3>Edit Group</h3><input type="text" id="editGroupName" placeholder="Group Name"><div class="modal-buttons"><button onclick="updateGroup()" style="background:#3B82F6; color:white">Save</button><button onclick="closeEditModal()" style="background:#E2E8F0">Cancel</button></div></div></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="location.href='home.html'"><i class="fas fa-home"></i><span>Feed</span></div>
+    <div class="nav-item" onclick="location.href='chats.html'"><i class="fas fa-comments"></i><span>Chats</span></div>
+    <div class="nav-item active" onclick="location.href='group-chat.html'"><i class="fas fa-users"></i><span>Groups</span></div>
+    <div class="nav-item" onclick="location.href='profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
+    <div class="nav-item" onclick="location.href='settings.html'"><i class="fas fa-cog"></i><span>Settings</span></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }
+    let currentUser = null, groupId = null, members = [], isAdmin = false;
+    function showToast(msg, isErr) { const t = document.getElementById('toast'); t.textContent = msg; t.style.background = isErr ? '#EF4444' : '#22C55E'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+    async function checkAuth() { const { data: { session } } = await _supabase.auth.getSession(); if (!session) { location.href = 'login.html'; return null; } currentUser = session.user; return currentUser; }
+    async function loadGroupInfo() { groupId = localStorage.getItem('chatGroupId'); const groupName = localStorage.getItem('chatGroupName'); if (!groupId) { location.href = 'group-chat.html'; return; } document.getElementById('groupName').textContent = groupName; await loadMembers(); }
+    async function loadMembers() {
+      const { data: groupMembers } = await _supabase.from('group_members').select('*, profiles!group_members_user_id_fkey(id, display_name, username, avatar_url)').eq('group_id', groupId);
+      members = groupMembers || []; document.getElementById('memberCount').textContent = members.length; document.getElementById('groupStats').textContent = `${members.length} members`;
+      const myMember = members.find(m => m.user_id === currentUser.id); isAdmin = myMember?.role === 'admin';
+      let html = '';
+      for (const member of members) {
+        const user = member.profiles; const isCurrent = member.user_id === currentUser.id;
+        html += `<div class="member-item"><div class="member-info"><div class="member-avatar">${user?.avatar_url ? `<img src="${user.avatar_url}" style="width:100%;height:100%;border-radius:50%">` : '<i class="fas fa-user"></i>'}</div><div><strong>${escapeHtml(user?.display_name || user?.username || 'Unknown')}</strong>${member.role === 'admin' ? '<span class="admin-badge">Admin</span>' : ''}${isCurrent ? '<span style="font-size:11px; color:#64748B; margin-left:8px">(You)</span>' : ''}</div></div>${isAdmin && !isCurrent ? `<button class="remove-btn" onclick="removeMember('${member.user_id}')"><i class="fas fa-user-minus"></i> Remove</button>` : ''}</div>`;
+      }
+      document.getElementById('membersList').innerHTML = html;
+    }
+    window.addMember = async () => {
+      const term = document.getElementById('newMemberEmail').value.trim(); if (!term) { showToast('Enter email or username', true); return; }
+      const { data: users } = await _supabase.from('profiles').select('id, display_name, username, email').or(`email.ilike.%${term}%,username.ilike.%${term}%,display_name.ilike.%${term}%`).limit(1);
+      if (!users || users.length === 0) { showToast('User not found', true); return; }
+      const userToAdd = users[0];
+      if (members.some(m => m.user_id === userToAdd.id)) { showToast('User already in group', true); return; }
+      const { error } = await _supabase.from('group_members').insert([{ group_id: groupId, user_id: userToAdd.id, role: 'member' }]);
+      if (error) showToast('Error adding member', true); else { showToast(`${userToAdd.display_name || userToAdd.username} added!`); document.getElementById('newMemberEmail').value = ''; await loadMembers(); }
+    };
+    window.removeMember = async (userId) => { if (!confirm('Remove this member?')) return; await _supabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', userId); showToast('Member removed'); await loadMembers(); };
+    window.openEditModal = () => { if (!isAdmin) { showToast('Only admins can edit', true); return; } document.getElementById('editGroupName').value = document.getElementById('groupName').textContent; document.getElementById('editModal').style.display = 'flex'; };
+    window.closeEditModal = () => { document.getElementById('editModal').style.display = 'none'; };
+    window.updateGroup = async () => { const newName = document.getElementById('editGroupName').value.trim(); if (!newName) return; const { error } = await _supabase.from('groups').update({ name: newName }).eq('id', groupId); if (error) showToast('Error updating', true); else { showToast('Group updated!'); document.getElementById('groupName').textContent = newName; localStorage.setItem('chatGroupName', newName); closeEditModal(); } };
+    window.leaveGroup = async () => { if (!confirm('Leave this group?')) return; await _supabase.from('group_members').delete().eq('group_id', groupId).eq('user_id', currentUser.id); showToast('You left the group'); setTimeout(() => location.href = 'group-chat.html', 1000); };
+    function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+    async function init() { await checkAuth(); if (currentUser) await loadGroupInfo(); }
+    init();
+  </script>
+</body>
+</html>

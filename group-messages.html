@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#3B82F6">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="zerøbyte">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/3B82F6/white?text=ZB">
+  
+  <title>zerøbyte | Group Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #F0F9FF;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-header {
+      background: white; padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .back-btn { background: none; border: none; color: #3B82F6; font-size: 20px; cursor: pointer; }
+    .group-avatar {
+      width: 45px; height: 45px; border-radius: 50%;
+      background: linear-gradient(135deg, #3B82F6, #06B6D4);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .group-info { flex: 1; }
+    .group-name { font-weight: 600; font-size: 17px; margin-bottom: 2px; }
+    .member-count { font-size: 12px; color: #64748B; }
+    .chat-actions { display: flex; gap: 15px; align-items: center; }
+    .chat-actions i { font-size: 18px; color: #64748B; cursor: pointer; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .message-row { display: flex; width: 100%; }
+    .message-row.sent { justify-content: flex-end; }
+    .message-row.received { justify-content: flex-start; }
+    .message-bubble { max-width: 75%; padding: 10px 14px; border-radius: 20px; }
+    .message-row.sent .message-bubble { background: linear-gradient(135deg, #3B82F6, #06B6D4); color: white; border-bottom-right-radius: 4px; }
+    .message-row.received .message-bubble { background: white; color: #1E293B; border: 1px solid #E2E8F0; border-bottom-left-radius: 4px; }
+    .message-sender { font-size: 11px; font-weight: 600; margin-bottom: 4px; color: #3B82F6; display: flex; align-items: center; gap: 6px; }
+    .message-text { font-size: 15px; word-wrap: break-word; }
+    .message-time { font-size: 10px; margin-top: 5px; opacity: 0.7; text-align: right; }
+    .chat-input-area {
+      background: white; padding: 12px 16px; display: flex; gap: 12px;
+      border-top: 1px solid #E2E8F0;
+    }
+    .chat-input { flex: 1; padding: 12px 16px; background: #F1F5F9; border: none; border-radius: 25px; font-size: 16px; outline: none; }
+    .btn-send { background: linear-gradient(135deg, #3B82F6, #06B6D4); border: none; padding: 12px 24px; border-radius: 25px; color: white; font-weight: 600; cursor: pointer; }
+    .verified-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%; font-size: 9px;
+      margin-left: 4px;
+    }
+    .verified-badge.blue { background: #3B82F6; color: white; }
+    .verified-badge.gold { background: #F59E0B; color: white; }
+    .verified-badge.purple { background: #8B5CF6; color: white; }
+    @media (max-width: 640px) { .message-bubble { max-width: 85%; } }
+  </style>
+</head>
+<body>
+  <div class="chat-header">
+    <button class="back-btn" onclick="location.href='group-chat.html'"><i class="fas fa-arrow-left"></i></button>
+    <div class="group-avatar"><i class="fas fa-users"></i></div>
+    <div class="group-info">
+      <div class="group-name" id="groupName">Loading...</div>
+      <div class="member-count" id="memberCount">Loading members...</div>
+    </div>
+    <div class="chat-actions">
+      <i class="fas fa-search" onclick="location.href='search.html'"></i>
+      <i class="fas fa-cog" onclick="location.href='group-settings.html'"></i>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-area">
+    <input type="text" class="chat-input" id="messageInput" placeholder="Type a message...">
+    <button class="btn-send" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }
+    let currentUser = null, groupId = null;
+
+    function getVerificationBadge(user) { if (!user?.is_verified) return ''; const bc = user.verification_badge || 'blue'; const icon = bc === 'gold' ? '⭐' : (bc === 'purple' ? '💜' : '✅'); return `<span class="verified-badge ${bc}">${icon}</span>`; }
+    async function checkAuth() { const { data: { session } } = await _supabase.auth.getSession(); if (!session) { location.href = 'login.html'; return null; } currentUser = session.user; return currentUser; }
+    async function loadGroupInfo() {
+      groupId = localStorage.getItem('chatGroupId'); const groupName = localStorage.getItem('chatGroupName');
+      if (!groupId) { location.href = 'group-chat.html'; return; }
+      document.getElementById('groupName').textContent = groupName;
+      const { count } = await _supabase.from('group_members').select('*', { count: 'exact', head: true }).eq('group_id', groupId);
+      document.getElementById('memberCount').textContent = `${count} members`;
+    }
+    async function loadMessages() {
+      const { data } = await _supabase.from('group_messages').select('*, profiles!group_messages_sender_id_fkey(display_name, username, avatar_url, is_verified, verification_badge)').eq('group_id', groupId).order('created_at', { ascending: true });
+      if (data) displayMessages(data);
+    }
+    function displayMessages(messages) {
+      const container = document.getElementById('chatMessages');
+      const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      container.innerHTML = '';
+      for (const msg of messages) {
+        const isSent = msg.sender_id === currentUser.id;
+        const div = document.createElement('div'); div.className = `message-row ${isSent ? 'sent' : 'received'}`;
+        const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const senderName = msg.profiles?.display_name || msg.profiles?.username || 'Unknown';
+        if (!isSent) {
+          div.innerHTML = `<div class="message-bubble"><div class="message-sender">${escapeHtml(senderName)} ${getVerificationBadge(msg.profiles)}</div><div class="message-text">${escapeHtml(msg.content)}</div><div class="message-time">${time}</div></div>`;
+        } else {
+          div.innerHTML = `<div class="message-bubble"><div class="message-text">${escapeHtml(msg.content)}</div><div class="message-time">${time}</div></div>`;
+        }
+        container.appendChild(div);
+      }
+      if (shouldScroll) container.scrollTop = container.scrollHeight;
+    }
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+      const { error } = await _supabase.from('group_messages').insert([{ group_id: groupId, sender_id: currentUser.id, content }]);
+      if (!error) { input.value = ''; await loadMessages(); }
+    }
+    function setupRealtime() { _supabase.channel('group-chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_messages' }, () => loadMessages()).subscribe(); }
+    function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+    document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    async function init() { await checkAuth(); if (currentUser) { await loadGroupInfo(); await loadMessages(); setupRealtime(); } }
+    init();
+  </script>
+</body>
+</html>

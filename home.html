@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#3B82F6">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="zerøbyte">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/3B82F6/white?text=ZB">
+  
+  <title>zerøbyte | Feed</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #F0F9FF;
+      color: #1E293B;
+      padding-bottom: 75px;
+    }
+    .header {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(59,130,246,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, #3B82F6, #06B6D4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .header-actions { display: flex; gap: 20px; align-items: center; }
+    .header-actions i { font-size: 20px; color: #64748B; cursor: pointer; }
+    .create-post {
+      background: white; margin: 15px; padding: 15px; border-radius: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .create-post textarea { width: 100%; border: none; resize: none; font-size: 16px; font-family: inherit; padding: 10px 0; outline: none; }
+    .post-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .submit-post { background: linear-gradient(135deg, #3B82F6, #06B6D4); color: white; border: none; padding: 8px 20px; border-radius: 40px; cursor: pointer; font-weight: 600; }
+    .feed { padding: 0 15px; }
+    .post-card {
+      background: white; border-radius: 28px; padding: 20px; margin-bottom: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: all 0.2s;
+    }
+    .post-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .post-avatar {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: linear-gradient(135deg, #3B82F6, #06B6D4);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .post-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .post-user-info h4 { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .post-user-info p { font-size: 12px; color: #64748B; margin-top: 4px; }
+    .post-content { margin-bottom: 16px; line-height: 1.5; }
+    .post-stats {
+      display: flex; gap: 24px; padding: 12px 0;
+      border-top: 1px solid #E2E8F0;
+      border-bottom: 1px solid #E2E8F0;
+      margin-bottom: 12px;
+    }
+    .post-stats span { font-size: 13px; color: #64748B; cursor: pointer; }
+    .post-engagement { display: flex; gap: 24px; }
+    .engagement-btn {
+      background: none; border: none; padding: 8px 0; cursor: pointer;
+      color: #64748B; font-size: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .engagement-btn:hover { color: #3B82F6; }
+    .engagement-btn.liked { color: #EF4444; }
+    .comments-section {
+      margin-top: 16px; padding-top: 16px; border-top: 1px solid #E2E8F0; display: none;
+    }
+    .comments-section.show { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .comment { display: flex; gap: 12px; margin-bottom: 16px; }
+    .comment-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #3B82F6, #06B6D4);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .comment-content { flex: 1; background: #F1F5F9; padding: 10px 14px; border-radius: 20px; }
+    .comment-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .comment-text { font-size: 13px; color: #334155; }
+    .add-comment { display: flex; gap: 12px; margin-top: 16px; }
+    .add-comment input {
+      flex: 1; padding: 12px 16px; border: 1px solid #E2E8F0; border-radius: 30px;
+      background: #F8FAFC; outline: none;
+    }
+    .add-comment input:focus { border-color: #3B82F6; background: white; }
+    .add-comment button { background: #3B82F6; color: white; border: none; padding: 0 20px; border-radius: 30px; cursor: pointer; }
+    .section {
+      background: white; border-radius: 28px; padding: 20px; margin: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .section-header h3 { font-size: 18px; font-weight: 600; }
+    .requests-badge { background: #EF4444; color: white; font-size: 12px; padding: 2px 10px; border-radius: 20px; }
+    .request-item {
+      display: flex; justify-content: space-between; align-items: center; padding: 12px;
+      background: #F8FAFC; border-radius: 20px; margin-bottom: 10px;
+    }
+    .request-info { display: flex; align-items: center; gap: 12px; }
+    .request-avatar {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: linear-gradient(135deg, #3B82F6, #06B6D4);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .request-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .request-details .request-name { font-weight: 600; }
+    .request-details .request-username { font-size: 12px; color: #64748B; }
+    .request-actions { display: flex; gap: 10px; }
+    .btn-accept { background: #22C55E; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
+    .btn-reject { background: #EF4444; color: white; border: none; padding: 8px 16px; border-radius: 30px; cursor: pointer; }
+    .friend-item {
+      display: flex; justify-content: space-between; align-items: center; padding: 12px;
+      background: #F8FAFC; border-radius: 20px; margin-bottom: 10px; cursor: pointer;
+    }
+    .friend-item:hover { background: #F1F5F9; transform: translateX(5px); }
+    .friend-info { display: flex; align-items: center; gap: 12px; }
+    .friend-avatar {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: linear-gradient(135deg, #3B82F6, #06B6D4);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      position: relative;
+    }
+    .online-dot {
+      position: absolute; bottom: 3px; right: 3px; width: 12px; height: 12px;
+      background: #22C55E; border-radius: 50%; border: 2px solid white;
+    }
+    .friend-details .friend-name { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .friend-details .friend-username { font-size: 12px; color: #64748B; }
+    .friend-status.online { color: #22C55E; background: rgba(34,197,94,0.1); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+    .friend-status.offline { color: #94A3B8; background: rgba(148,163,184,0.1); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+    .verified-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%; font-size: 9px; margin-left: 4px;
+    }
+    .verified-badge.blue { background: #3B82F6; color: white; }
+    .verified-badge.gold { background: #F59E0B; color: white; }
+    .verified-badge.purple { background: #8B5CF6; color: white; }
+    .empty-state { text-align: center; padding: 40px; color: #94A3B8; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.98); backdrop-filter: blur(20px);
+      display: flex; justify-content: space-around; padding: 12px 20px;
+      border-top: 1px solid rgba(59,130,246,0.1); z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: #94A3B8; cursor: pointer; font-size: 11px;
+      padding: 6px 16px; border-radius: 30px;
+    }
+    .nav-item i { font-size: 22px; }
+    .nav-item:hover, .nav-item.active { color: #3B82F6; background: rgba(59,130,246,0.1); }
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: #1E293B; color: white; padding: 12px 24px; border-radius: 50px;
+      font-size: 14px; z-index: 1000; display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">zerøbyte</div>
+    <div class="header-actions"><i class="fas fa-search" onclick="location.href='search.html'"></i></div>
+  </div>
+  <div class="create-post">
+    <textarea id="postContent" rows="2" placeholder="What's on your mind?"></textarea>
+    <div class="post-actions"><button class="submit-post" onclick="createPost()">Post</button></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><h3><i class="fas fa-user-plus"></i> Friend Requests</h3><span class="requests-badge" id="requestsCount">0</span></div>
+    <div id="friendRequestsList"><div class="empty-state">No pending friend requests</div></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><h3><i class="fas fa-users"></i> Friends</h3><span id="friendsCount">0</span></div>
+    <div id="friendsList"><div class="empty-state">No friends yet</div></div>
+  </div>
+  <div class="feed" id="feed"><div class="empty-state">Loading posts...</div></div>
+  <div id="toast" class="toast"></div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="location.href='home.html'"><i class="fas fa-home"></i><span>Feed</span></div>
+    <div class="nav-item" onclick="location.href='chats.html'"><i class="fas fa-comments"></i><span>Chats</span></div>
+    <div class="nav-item" onclick="location.href='group-chat.html'"><i class="fas fa-users"></i><span>Groups</span></div>
+    <div class="nav-item" onclick="location.href='profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
+    <div class="nav-item" onclick="location.href='settings.html'"><i class="fas fa-cog"></i><span>Settings</span></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }
+    let currentUser = null;
+    function showToast(msg, isErr) { const t = document.getElementById('toast'); t.textContent = msg; t.style.background = isErr ? '#EF4444' : '#1E293B'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+    function getVerificationBadge(user) { if (!user?.is_verified) return ''; const bc = user.verification_badge || 'blue'; const icon = bc === 'gold' ? '⭐' : (bc === 'purple' ? '💜' : '✅'); return `<span class="verified-badge ${bc}">${icon}</span>`; }
+    async function checkAuth() { const { data: { session } } = await _supabase.auth.getSession(); if (!session) { location.href = 'login.html'; return null; } currentUser = session.user; return currentUser; }
+    window.createPost = async () => { const content = document.getElementById('postContent').value.trim(); if (!content) { showToast('Please write something', true); return; } const { error } = await _supabase.from('posts').insert([{ user_id: currentUser.id, content, likes_count: 0, comments_count: 0 }]); if (!error) { document.getElementById('postContent').value = ''; await loadPosts(); showToast('Post created!'); } else showToast('Error', true); };
+    async function loadPosts() {
+      const { data: posts } = await _supabase.from('posts').select('*, profiles!posts_user_id_fkey(display_name, username, avatar_url, is_verified, verification_badge)').order('created_at', { ascending: false });
+      const feed = document.getElementById('feed');
+      if (!posts || posts.length === 0) { feed.innerHTML = '<div class="empty-state"><i class="fas fa-newspaper"></i><h3>No posts yet</h3><p>Be the first to share something!</p></div>'; return; }
+      const { data: userLikes } = await _supabase.from('likes').select('post_id').eq('user_id', currentUser.id);
+      const likedSet = new Set(userLikes?.map(l => l.post_id) || []);
+      let html = '';
+      for (const post of posts) {
+        const user = post.profiles;
+        const isLiked = likedSet.has(post.id);
+        html += `<div class="post-card" data-post-id="${post.id}"><div class="post-header"><div class="post-avatar">${user?.avatar_url ? `<img src="${user.avatar_url}">` : '<i class="fas fa-user"></i>'}</div><div class="post-user-info"><h4>${escapeHtml(user?.display_name || user?.username || 'Unknown')} ${getVerificationBadge(user)}</h4><p>${formatTime(post.created_at)}</p></div></div><div class="post-content">${escapeHtml(post.content)}</div><div class="post-stats"><span class="like-count-${post.id}" data-likes="${post.likes_count || 0}"><i class="fas fa-heart"></i> ${post.likes_count || 0}</span><span class="comment-count-${post.id}"><i class="fas fa-comment"></i> ${post.comments_count || 0}</span></div><div class="post-engagement"><button class="engagement-btn like-btn-${post.id} ${isLiked ? 'liked' : ''}" data-post-id="${post.id}" onclick="toggleLike(this)"><i class="fas fa-heart"></i> <span class="like-text">${isLiked ? 'Liked' : 'Like'}</span></button><button class="engagement-btn" onclick="toggleComments('${post.id}')"><i class="fas fa-comment"></i> Comment</button></div><div class="comments-section" id="comments-${post.id}"><div id="comments-list-${post.id}"></div><div class="add-comment"><input type="text" id="comment-input-${post.id}" placeholder="Write a comment..."><button onclick="addComment('${post.id}')">Post</button></div></div></div>`;
+      }
+      feed.innerHTML = html;
+      for (const post of posts) loadComments(post.id);
+    }
+    async function loadComments(postId) {
+      const { data: comments } = await _supabase.from('comments').select('*, profiles!comments_user_id_fkey(display_name, username, avatar_url, is_verified, verification_badge)').eq('post_id', postId).order('created_at', { ascending: true });
+      const container = document.getElementById(`comments-list-${postId}`);
+      if (!container) return;
+      if (!comments || comments.length === 0) { container.innerHTML = '<div style="padding:16px; color:#94A3B8; text-align:center">No comments yet</div>'; return; }
+      let html = '';
+      for (const comment of comments) {
+        const user = comment.profiles;
+        html += `<div class="comment"><div class="comment-avatar">${user?.avatar_url ? `<img src="${user.avatar_url}" style="width:100%;height:100%;border-radius:50%">` : '<i class="fas fa-user"></i>'}</div><div class="comment-content"><div class="comment-name">${escapeHtml(user?.display_name || user?.username || 'Unknown')} ${getVerificationBadge(user)}</div><div class="comment-text">${escapeHtml(comment.content)}</div></div></div>`;
+      }
+      container.innerHTML = html;
+    }
+    window.toggleLike = async (button) => {
+      const postId = button.dataset.postId;
+      const isLiked = button.classList.contains('liked');
+      const likeSpan = document.querySelector(`.like-count-${postId}`);
+      let currentLikes = parseInt(likeSpan.dataset.likes) || 0;
+      if (isLiked) {
+        await _supabase.from('likes').delete().eq('post_id', postId).eq('user_id', currentUser.id);
+        button.classList.remove('liked'); button.querySelector('.like-text').textContent = 'Like';
+        const newLikes = currentLikes - 1;
+        likeSpan.innerHTML = `<i class="fas fa-heart"></i> ${newLikes}`;
+        likeSpan.dataset.likes = newLikes;
+        await _supabase.from('posts').update({ likes_count: newLikes }).eq('id', postId);
+      } else {
+        await _supabase.from('likes').insert([{ post_id: postId, user_id: currentUser.id }]);
+        button.classList.add('liked'); button.querySelector('.like-text').textContent = 'Liked';
+        const newLikes = currentLikes + 1;
+        likeSpan.innerHTML = `<i class="fas fa-heart"></i> ${newLikes}`;
+        likeSpan.dataset.likes = newLikes;
+        await _supabase.from('posts').update({ likes_count: newLikes }).eq('id', postId);
+      }
+    };
+    window.toggleComments = (postId) => { document.getElementById(`comments-${postId}`).classList.toggle('show'); };
+    window.addComment = async (postId) => {
+      const input = document.getElementById(`comment-input-${postId}`);
+      const content = input.value.trim();
+      if (!content) { showToast('Please write a comment', true); return; }
+      await _supabase.from('comments').insert([{ post_id: postId, user_id: currentUser.id, content }]);
+      input.value = '';
+      await loadComments(postId);
+      const { count } = await _supabase.from('comments').select('*', { count: 'exact', head: true }).eq('post_id', postId);
+      await _supabase.from('posts').update({ comments_count: count }).eq('id', postId);
+      const commentSpan = document.querySelector(`.comment-count-${postId}`);
+      if (commentSpan) commentSpan.innerHTML = `<i class="fas fa-comment"></i> ${count}`;
+      showToast('Comment added!');
+    };
+    async function loadFriendRequests() {
+      const { data: requests } = await _supabase.from('connections').select('*, profiles!connections_user_id_fkey(id, display_name, username, avatar_url)').eq('friend_id', currentUser.id).eq('status', 'pending');
+      const container = document.getElementById('friendRequestsList');
+      const countSpan = document.getElementById('requestsCount');
+      if (!requests || requests.length === 0) { container.innerHTML = '<div class="empty-state">No pending friend requests</div>'; if (countSpan) countSpan.textContent = '0'; return; }
+      if (countSpan) countSpan.textContent = requests.length;
+      let html = '';
+      for (const req of requests) {
+        const user = req.profiles;
+        html += `<div class="request-item"><div class="request-info"><div class="request-avatar">${user?.avatar_url ? `<img src="${user.avatar_url}">` : '<i class="fas fa-user"></i>'}</div><div class="request-details"><div class="request-name">${escapeHtml(user?.display_name || user?.username)}</div><div class="request-username">@${escapeHtml(user?.user_handle || user?.username)}</div></div></div><div class="request-actions"><button class="btn-accept" onclick="acceptFriendRequest('${user.id}')"><i class="fas fa-check"></i> Accept</button><button class="btn-reject" onclick="rejectFriendRequest('${user.id}')"><i class="fas fa-times"></i> Reject</button></div></div>`;
+      }
+      container.innerHTML = html;
+    }
+    window.acceptFriendRequest = async (userId) => { await _supabase.from('connections').update({ status: 'accepted' }).eq('user_id', userId).eq('friend_id', currentUser.id); await loadFriendRequests(); await loadFriendsList(); showToast('Friend request accepted!'); };
+    window.rejectFriendRequest = async (userId) => { await _supabase.from('connections').delete().eq('user_id', userId).eq('friend_id', currentUser.id); await loadFriendRequests(); showToast('Friend request rejected'); };
+    async function loadFriendsList() {
+      const { data: conn1 } = await _supabase.from('connections').select('*, friend:profiles!connections_friend_id_fkey(*)').eq('user_id', currentUser.id).eq('status', 'accepted');
+      const { data: conn2 } = await _supabase.from('connections').select('*, user:profiles!connections_user_id_fkey(*)').eq('friend_id', currentUser.id).eq('status', 'accepted');
+      let friends = [];
+      if (conn1) friends.push(...conn1.map(c => ({ ...c.friend })));
+      if (conn2) friends.push(...conn2.map(c => ({ ...c.user })));
+      const container = document.getElementById('friendsList');
+      const countSpan = document.getElementById('friendsCount');
+      if (countSpan) countSpan.textContent = friends.length;
+      if (friends.length === 0) { container.innerHTML = '<div class="empty-state">No friends yet. Search for friends to connect!</div>'; return; }
+      let html = '';
+      for (const friend of friends) {
+        html += `<div class="friend-item" onclick="startChat('${friend.id}', '${escapeHtml(friend.display_name || friend.username)}')"><div class="friend-info"><div class="friend-avatar">${friend.avatar_url ? `<img src="${friend.avatar_url}">` : '<i class="fas fa-user"></i>'}${friend.is_online ? '<span class="online-dot"></span>' : ''}${getVerificationBadge(friend)}</div><div class="friend-details"><div class="friend-name">${escapeHtml(friend.display_name || friend.username)}</div><div class="friend-username">@${escapeHtml(friend.user_handle || friend.username)}</div></div></div><div class="friend-status ${friend.is_online ? 'online' : 'offline'}">${friend.is_online ? 'Online' : 'Offline'}</div></div>`;
+      }
+      container.innerHTML = html;
+    }
+    window.startChat = (id, name) => { localStorage.setItem('chatFriendId', id); localStorage.setItem('chatFriendName', name); location.href = 'chat.html'; };
+    function formatTime(ts) { const d = new Date(ts); const n = new Date(); const diff = n - d; if (diff < 60000) return 'Just now'; if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`; if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`; return d.toLocaleDateString(); }
+    function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+    async function init() { await checkAuth(); if (currentUser) { await loadPosts(); await loadFriendRequests(); await loadFriendsList(); } }
+    init();
+  </script>
+</body>
+</html>

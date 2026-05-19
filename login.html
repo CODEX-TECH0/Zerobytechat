@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#3B82F6">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="zerøbyte">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/3B82F6/white?text=ZB">
+  
+  <title>zerøbyte | Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-container {
+      background: white;
+      border-radius: 40px;
+      padding: 45px;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      animation: fadeInUp 0.6s ease;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .logo { text-align: center; font-size: 32px; font-weight: bold; margin-bottom: 30px; background: linear-gradient(135deg, #3B82F6, #06B6D4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    h2 { text-align: center; margin-bottom: 8px; color: #1E293B; }
+    .subtitle { text-align: center; color: #64748B; margin-bottom: 35px; }
+    .form-group { margin-bottom: 24px; }
+    label { display: block; margin-bottom: 8px; color: #1E293B; font-weight: 500; }
+    label i { margin-right: 8px; color: #3B82F6; }
+    input {
+      width: 100%; padding: 14px 18px; background: #F8FAFC; border: 1.5px solid #E2E8F0;
+      border-radius: 16px; color: #1E293B; font-size: 16px;
+    }
+    input:focus { outline: none; border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    .btn-primary {
+      width: 100%; padding: 14px; background: linear-gradient(135deg, #3B82F6, #06B6D4);
+      border: none; border-radius: 40px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(59,130,246,0.4); }
+    .signup-link { text-align: center; margin-top: 28px; color: #64748B; }
+    .signup-link a { color: #3B82F6; text-decoration: none; font-weight: 600; }
+    .message { padding: 14px; border-radius: 16px; margin-bottom: 25px; text-align: center; }
+    .error { background: #FEE2E2; border: 1px solid #EF4444; color: #DC2626; }
+    .success { background: #DCFCE7; border: 1px solid #22C55E; color: #16A34A; }
+    .loading { display: inline-block; width: 18px; height: 18px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">zerøbyte</div>
+    <h2>Welcome Back</h2>
+    <div class="subtitle">Sign in to continue</div>
+    <div id="message"></div>
+    <form id="loginForm">
+      <div class="form-group"><label><i class="fas fa-envelope"></i> Email</label><input type="email" id="email" required placeholder="you@example.com"></div>
+      <div class="form-group"><label><i class="fas fa-lock"></i> Password</label><input type="password" id="password" required placeholder="Enter your password"></div>
+      <button type="submit" class="btn-primary" id="loginBtn">Login</button>
+    </form>
+    <div class="signup-link">Don't have an account? <a href="signup.html">Create one</a></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }
+    const msgDiv = document.getElementById('message'); const loginBtn = document.getElementById('loginBtn');
+    function showMessage(text, type) { msgDiv.innerHTML = `<div class="message ${type}">${text}</div>`; setTimeout(() => msgDiv.innerHTML = '', 5000); }
+    async function checkSession() { const { data: { session } } = await _supabase.auth.getSession(); if (session) location.href = 'home.html'; }
+    checkSession();
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      if (!email || !password) { showMessage('Please enter both email and password', 'error'); return; }
+      loginBtn.disabled = true; loginBtn.innerHTML = '<span class="loading"></span> Logging in...';
+      try {
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (data && data.user) { await _supabase.from('profiles').update({ is_online: true, last_seen: new Date() }).eq('id', data.user.id); showMessage('Login successful! Redirecting...', 'success'); setTimeout(() => location.href = 'home.html', 1000); }
+      } catch (error) { showMessage(error.message || 'Login failed', 'error'); loginBtn.disabled = false; loginBtn.innerHTML = 'Login'; }
+    });
+  </script>
+</body>
+</html>

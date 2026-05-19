@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#3B82F6">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="zerøbyte">
+  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/3B82F6/white?text=ZB">
+  
+  <title>zerøbyte | Settings</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #F0F9FF;
+      color: #1E293B;
+      padding-bottom: 75px;
+    }
+    .header {
+      background: white; padding: 15px 20px; display: flex; align-items: center; gap: 15px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .back-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #3B82F6; }
+    .header h1 { font-size: 20px; }
+    .settings-section { background: white; margin: 15px; border-radius: 28px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .section-header { padding: 15px 20px; background: #F8FAFC; font-weight: 600; border-bottom: 1px solid #E2E8F0; }
+    .setting-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px 20px; border-bottom: 1px solid #F1F5F9; cursor: pointer;
+    }
+    .setting-item:active { background: #F1F5F9; }
+    .setting-left { display: flex; align-items: center; gap: 15px; }
+    .setting-left i { width: 25px; color: #3B82F6; font-size: 18px; }
+    .setting-title { font-weight: 500; }
+    .setting-desc { font-size: 12px; color: #64748B; margin-top: 3px; }
+    .toggle-switch { width: 50px; height: 26px; background: #CBD5E1; border-radius: 30px; position: relative; transition: 0.3s; }
+    .toggle-switch.active { background: #3B82F6; }
+    .toggle-switch:after { content: ''; position: absolute; width: 22px; height: 22px; background: white; border-radius: 50%; top: 2px; left: 4px; transition: 0.3s; }
+    .toggle-switch.active:after { left: 24px; }
+    .verify-section { background: white; margin: 15px; border-radius: 28px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .btn-verify-request { background: linear-gradient(135deg, #3B82F6, #06B6D4); color: white; border: none; padding: 12px 24px; border-radius: 40px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
+    .btn-verify-request:disabled { background: #94A3B8; cursor: not-allowed; }
+    .verify-status { margin-top: 15px; padding: 10px; border-radius: 16px; font-size: 13px; }
+    .verify-status.pending { background: #FEF3C7; color: #D97706; }
+    .verify-status.verified { background: #DCFCE7; color: #16A34A; }
+    .danger-btn { background: #FEE2E2; color: #DC2626; border: none; padding: 15px; border-radius: 16px; font-weight: 600; cursor: pointer; width: calc(100% - 30px); margin: 15px; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.98); backdrop-filter: blur(20px);
+      display: flex; justify-content: space-around; padding: 12px 20px;
+      border-top: 1px solid rgba(59,130,246,0.1); z-index: 100;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: #94A3B8; cursor: pointer; font-size: 11px;
+      padding: 6px 16px; border-radius: 30px;
+    }
+    .nav-item i { font-size: 22px; }
+    .nav-item:hover, .nav-item.active { color: #3B82F6; background: rgba(59,130,246,0.1); }
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 200;
+    }
+    .modal-content { background: white; padding: 25px; border-radius: 28px; width: 90%; max-width: 400px; }
+    .modal-content textarea { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #E2E8F0; border-radius: 16px; resize: vertical; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .modal-buttons button { flex: 1; padding: 12px; border: none; border-radius: 16px; cursor: pointer; }
+    .btn-confirm { background: #3B82F6; color: white; }
+    .btn-cancel { background: #E2E8F0; color: #1E293B; }
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #1E293B; color: white; padding: 10px 20px; border-radius: 50px;
+      font-size: 14px; z-index: 1000; display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="back-btn" onclick="location.href='home.html'"><i class="fas fa-arrow-left"></i></button>
+    <h1>Settings</h1>
+  </div>
+  <div id="toast" class="toast"></div>
+  <div class="verify-section" id="verifySection">
+    <div id="badgeDisplay"></div>
+    <div id="verifyStatus"></div>
+    <button id="requestVerifyBtn" class="btn-verify-request" onclick="openRequestModal()">Request Verification</button>
+  </div>
+  <div class="settings-section">
+    <div class="section-header">Appearance</div>
+    <div class="setting-item" id="themeSetting"><div class="setting-left"><i class="fas fa-moon"></i><div><div class="setting-title">Dark Mode</div><div class="setting-desc">Switch between light and dark theme</div></div></div><div class="toggle-switch" id="themeToggle"></div></div>
+  </div>
+  <div class="settings-section">
+    <div class="section-header">Notifications</div>
+    <div class="setting-item" id="emailSetting"><div class="setting-left"><i class="fas fa-envelope"></i><div><div class="setting-title">Email on New Message</div><div class="setting-desc">Get email when someone messages you</div></div></div><div class="toggle-switch" id="emailToggle"></div></div>
+  </div>
+  <div class="settings-section">
+    <div class="section-header">Privacy</div>
+    <div class="setting-item" id="readReceiptsSetting"><div class="setting-left"><i class="fas fa-eye"></i><div><div class="setting-title">Read Receipts</div><div class="setting-desc">Show when you've read messages</div></div></div><div class="toggle-switch" id="readReceiptsToggle"></div></div>
+    <div class="setting-item" id="typingSetting"><div class="setting-left"><i class="fas fa-keyboard"></i><div><div class="setting-title">Typing Indicator</div><div class="setting-desc">Show when you're typing</div></div></div><div class="toggle-switch" id="typingToggle"></div></div>
+  </div>
+  <div class="settings-section">
+    <div class="section-header">Account</div>
+    <div class="setting-item" onclick="location.href='edit-profile.html'"><div class="setting-left"><i class="fas fa-user-edit"></i><div><div class="setting-title">Edit Profile</div><div class="setting-desc">Change your display name, bio, avatar</div></div></div><i class="fas fa-chevron-right" style="color:#94A3B8"></i></div>
+    <div class="setting-item" id="logoutBtn"><div class="setting-left"><i class="fas fa-sign-out-alt"></i><div><div class="setting-title">Logout</div><div class="setting-desc">Sign out of your account</div></div></div><i class="fas fa-chevron-right" style="color:#94A3B8"></i></div>
+  </div>
+  <button class="danger-btn" id="deleteBtn">Delete Account</button>
+  <div id="requestModal" class="modal"><div class="modal-content"><h3>Request Verification</h3><textarea id="verificationReason" rows="3" placeholder="Why should you be verified?"></textarea><div class="modal-buttons"><button class="btn-confirm" onclick="submitVerificationRequest()">Submit Request</button><button class="btn-cancel" onclick="closeRequestModal()">Cancel</button></div></div></div>
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="location.href='home.html'"><i class="fas fa-home"></i><span>Feed</span></div>
+    <div class="nav-item" onclick="location.href='chats.html'"><i class="fas fa-comments"></i><span>Chats</span></div>
+    <div class="nav-item" onclick="location.href='group-chat.html'"><i class="fas fa-users"></i><span>Groups</span></div>
+    <div class="nav-item" onclick="location.href='profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
+    <div class="nav-item active" onclick="location.href='settings.html'"><i class="fas fa-cog"></i><span>Settings</span></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://yaibrpthbugcycvzbuie.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhaWJycHRoYnVnY3ljdnpidWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTIzMDMsImV4cCI6MjA5NDU4ODMwM30.-BwWDwdpL9rAois22PU3ATtzlAzdSx9qN6L71czHFXU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/service-worker.js'); }
+    let currentUser = null, userProfile = null, settings = { theme: 'light', email_on_message: true, read_receipts: true, typing_indicator: true };
+    function showToast(msg, isErr) { const t = document.getElementById('toast'); t.textContent = msg; t.style.background = isErr ? '#EF4444' : '#1E293B'; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+    async function checkAuth() { const { data: { session } } = await _supabase.auth.getSession(); if (!session) { location.href = 'login.html'; return null; } currentUser = session.user; return currentUser; }
+    async function loadProfile() { const { data } = await _supabase.from('profiles').select('*').eq('id', currentUser.id).single(); if (data) { userProfile = data; updateVerificationUI(); } }
+    function updateVerificationUI() {
+      const badgeDiv = document.getElementById('badgeDisplay'), statusDiv = document.getElementById('verifyStatus'), reqBtn = document.getElementById('requestVerifyBtn');
+      if (userProfile.is_verified) {
+        let badgeClass = 'verified', badgeText = '✅ Verified Account';
+        if (userProfile.verification_badge === 'gold') { badgeClass = 'gold'; badgeText = '⭐ Gold Verified Account'; }
+        else if (userProfile.verification_badge === 'purple') { badgeClass = 'purple'; badgeText = '💜 Admin Account'; }
+        else { badgeClass = 'blue'; badgeText = '🔵 Verified Account'; }
+        badgeDiv.innerHTML = `<div style="padding:10px; background:rgba(59,130,246,0.1); border-radius:20px; color:#3B82F6">${badgeText}</div>`;
+        statusDiv.innerHTML = '<div class="verify-status verified">✅ Your account is verified!</div>';
+        reqBtn.style.display = 'none';
+      } else if (userProfile.verification_requested) {
+        badgeDiv.innerHTML = '<div style="padding:10px; background:rgba(245,158,11,0.1); border-radius:20px; color:#F59E0B">⏳ Verification Requested</div>';
+        statusDiv.innerHTML = '<div class="verify-status pending">⏳ Your verification request is pending admin review.</div>';
+        reqBtn.disabled = true; reqBtn.textContent = 'Request Pending';
+      } else {
+        badgeDiv.innerHTML = '<div style="padding:10px; background:rgba(148,163,184,0.1); border-radius:20px; color:#64748B">🔓 Unverified Account</div>';
+        statusDiv.innerHTML = '<div class="verify-status">Get verified to earn a verification badge on your profile!</div>';
+        reqBtn.disabled = false; reqBtn.textContent = 'Request Verification'; reqBtn.style.display = 'block';
+      }
+    }
+    window.openRequestModal = () => { if (userProfile.is_verified) { showToast('Already verified!', true); return; } if (userProfile.verification_requested) { showToast('Request already pending!', true); return; } document.getElementById('verificationReason').value = ''; document.getElementById('requestModal').style.display = 'flex'; };
+    window.closeRequestModal = () => { document.getElementById('requestModal').style.display = 'none'; };
+    window.submitVerificationRequest = async () => { const reason = document.getElementById('verificationReason').value.trim(); if (!reason) { showToast('Please provide a reason', true); return; } const { error } = await _supabase.from('profiles').update({ verification_requested: true, verification_requested_at: new Date(), verification_message: reason }).eq('id', currentUser.id); if (error) { showToast('Error: ' + error.message, true); } else { showToast('Request submitted!'); closeRequestModal(); await loadProfile(); } };
+    async function loadSettings() { const { data } = await _supabase.from('user_settings').select('*').eq('user_id', currentUser.id).single(); if (data) settings = { ...settings, ...data }; else await _supabase.from('user_settings').insert([{ user_id: currentUser.id }]); updateUI(); }
+    function updateUI() { const isDark = localStorage.getItem('theme') === 'dark'; document.getElementById('themeToggle').classList.toggle('active', isDark); document.getElementById('emailToggle').classList.toggle('active', settings.email_on_message); document.getElementById('readReceiptsToggle').classList.toggle('active', settings.read_receipts); document.getElementById('typingToggle').classList.toggle('active', settings.typing_indicator); }
+    document.getElementById('themeSetting').onclick = async () => { const isDark = localStorage.getItem('theme') === 'dark'; const newTheme = isDark ? 'light' : 'dark'; localStorage.setItem('theme', newTheme); document.getElementById('themeToggle').classList.toggle('active'); await _supabase.from('user_settings').update({ theme: newTheme }).eq('user_id', currentUser.id); showToast(`${newTheme === 'dark' ? 'Dark' : 'Light'} mode enabled`); };
+    document.getElementById('emailSetting').onclick = async () => { const nv = !settings.email_on_message; settings.email_on_message = nv; document.getElementById('emailToggle').classList.toggle('active'); await _supabase.from('user_settings').update({ email_on_message: nv }).eq('user_id', currentUser.id); showToast(nv ? 'Email notifications on' : 'Email notifications off'); };
+    document.getElementById('readReceiptsSetting').onclick = async () => { const nv = !settings.read_receipts; settings.read_receipts = nv; document.getElementById('readReceiptsToggle').classList.toggle('active'); await _supabase.from('user_settings').update({ read_receipts: nv }).eq('user_id', currentUser.id); showToast(nv ? 'Read receipts on' : 'Read receipts off'); };
+    document.getElementById('typingSetting').onclick = async () => { const nv = !settings.typing_indicator; settings.typing_indicator = nv; document.getElementById('typingToggle').classList.toggle('active'); await _supabase.from('user_settings').update({ typing_indicator: nv }).eq('user_id', currentUser.id); showToast(nv ? 'Typing indicator on' : 'Typing indicator off'); };
+    document.getElementById('logoutBtn').onclick = async () => { await _supabase.auth.signOut(); location.href = 'login.html'; };
+    document.getElementById('deleteBtn').onclick = async () => { if (confirm('Delete your account permanently?')) { if (prompt('Type DELETE to confirm:') === 'DELETE') { await _supabase.from('profiles').delete().eq('id', currentUser.id); await _supabase.auth.signOut(); location.href = 'index.html'; } else showToast('Cancelled'); } };
+    const savedTheme = localStorage.getItem('theme'); if (savedTheme === 'dark') document.body.style.background = '#0F172A';
+    async function init() { await checkAuth(); if (currentUser) { await loadProfile(); await loadSettings(); } }
+    init();
+  </script>
+</body>
+</html>
